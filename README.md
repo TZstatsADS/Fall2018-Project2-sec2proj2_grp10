@@ -22,7 +22,7 @@ Term: Spring 2018
 
 + Team #
 + **Projec title**: + Team members
-	+ team member 1
+	+ Zhongce Ji (zj2225)
 	+ team member 2
 	+ team member 3
 	+ team member 4
