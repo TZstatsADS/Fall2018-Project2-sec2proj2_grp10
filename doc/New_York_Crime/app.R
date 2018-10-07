@@ -18,6 +18,7 @@ library("geosphere")
 library("dplyr")
 library("ggmap")
 library("stringr")
+library("htmlwidgets")
 
 
 Crime_Data <- read.csv("../../data/NYC_Crime_Data/NYC_crime.csv")
@@ -72,7 +73,7 @@ Search_Nearby <- function(Search_Interest, Position_Latitude, Position_Longitude
   }
 }
 
-Search_Nearby("hotel", Target_Lat, Target_Lon, 1700, 10)
+# Search_Nearby("hotel", Target_Lat, Target_Lon, 1700, 10)
 
 
 # Calculate the distance for each row between one point
@@ -176,6 +177,8 @@ ui <- navbarPage("New York Crime Data",
                             
                             checkboxInput("Hotels", "Hotels", value = FALSE, width = NULL),
                             
+                            sliderInput("distance", "distance: ", min = 0, max = 10, value = 0, step = 0.5),
+                            
                             textOutput("Restaurant_Output"),
                             
                             leafletOutput("Map")
@@ -199,12 +202,10 @@ ui <- navbarPage("New York Crime Data",
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
-  
-  
-  Target_Lat <- 40.808751
-  
-  Target_Lon <- -73.963228
-
+  Position <- reactive({
+    c(  Target_Lat = 40.808751,
+        Target_Lon = -73.963228)
+  })
   
   
   observeEvent(input$Restaurant,{
@@ -213,7 +214,7 @@ server <- function(input, output) {
       
       Range <- ifelse(input$Map_zoom <=5, 10, ifelse(input$Map_zoom <= 10, 20, ifelse(input$Map_zoom <= 15, 30, 40)))
       
-      Restaurant_DF <- Search_Nearby("Restaurant", Target_Lat, Target_Lon, 1700, Range)
+      Restaurant_DF <- Search_Nearby("Restaurant", Position()["Target_Lat"],  Position()["Target_Lon"], 1700, Range)
       
       print(Restaurant_DF)
       
@@ -231,19 +232,30 @@ server <- function(input, output) {
     
   }, ignoreNULL = FALSE)
   
+
   
   
   observeEvent(input$Hotels,{
+    
+    greenLeafIcon <- makeIcon(
+      iconUrl = "http://leafletjs.com/examples/custom-icons/leaf-green.png",
+      iconWidth = 38, iconHeight = 95,
+      iconAnchorX = 22, iconAnchorY = 94,
+      shadowUrl = "http://leafletjs.com/examples/custom-icons/leaf-shadow.png",
+      shadowWidth = 50, shadowHeight = 64,
+      shadowAnchorX = 4, shadowAnchorY = 62
+    )
+    
     
     if(input$Hotels == TRUE){
       
       Range <- ifelse(input$Map_zoom <=5, 10, ifelse(input$Map_zoom <= 10, 20, ifelse(input$Map_zoom <= 15, 30, 40)))
       
-      Restaurant_DF <- Search_Nearby("Hotels", Target_Lat, Target_Lon, 1700, Range)
+      Hotels_DF <- Search_Nearby("Hotels", Position()["Target_Lat"],  Position()["Target_Lon"], 1700, Range)
       
-      print(Restaurant_DF)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(lng = Restaurant_DF$Lon, lat = Restaurant_DF$Lat, clusterId = "Hotels", clusterOptions = markerClusterOptions() )
+      print(Hotels_DF)
+        
+      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(lng = Hotels_DF$Lon, lat = Hotels_DF$Lat, icon = greenLeafIcon, clusterId = "Hotels", clusterOptions = markerClusterOptions() )
       
     }
     
@@ -253,9 +265,25 @@ server <- function(input, output) {
       
     }
     
-    
   }, ignoreNULL = FALSE)
   
+  
+  
+  
+  observeEvent(input$distance,{
+    
+    
+    TargetPT_CrimeGeo <- Cal_Dist_RowData_Point(Crime_Geo_Data, Position()["Target_Lat"],  Position()["Target_Lon"])
+    
+    
+    TargetPT_CrimeGeo_Distance_Order <- order(TargetPT_CrimeGeo$Distance, decreasing = FALSE)
+    
+    TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Distance_Order,]
+    
+    print(nrow(TargetPT_CrimeGeo[TargetPT_CrimeGeo$Distance <= input$distance,]))
+    
+    
+  }, ignoreNULL = FALSE)
   
   
   
@@ -265,9 +293,11 @@ server <- function(input, output) {
   # })
   # 
   # 
+  
   output$Map <- renderLeaflet({
 
-    leaflet() %>% setView(lng = Target_Lon, lat = Target_Lat, zoom = 15) %>% addTiles()
+
+    leaflet() %>% setView(lng = as.numeric(Position()["Target_Lon"]), lat = as.numeric(Position()["Target_Lat"]), zoom = 15) %>% addMarkers(lng = Position()["Target_Lon"], lat = Position()["Target_Lat"], layerId = "Current_Address") %>% addTiles()
 
 
   })
