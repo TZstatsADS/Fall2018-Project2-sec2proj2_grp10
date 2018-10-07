@@ -162,6 +162,17 @@ Cal_Dist_DF <- function(GeoData1, GeoData2){
 # 
 # write.csv(Crime_Data, file = "Crime_Data.csv")
 
+Total_Type <- c()
+
+Type_Selection <- unique(Crime_Data$PD_DESC)
+
+for (type in Type_Selection) {
+  
+  Total_Type <- c(Total_Type, type = type )
+  
+}
+
+names(Total_Type)  <- Type_Selection
 
 
 
@@ -177,7 +188,9 @@ ui <- navbarPage("New York Crime Data",
                             
                             checkboxInput("Hotels", "Hotels", value = FALSE, width = NULL),
                             
-                            sliderInput("distance", "distance: ", min = 0, max = 10, value = 0, step = 0.5),
+                            sliderInput("distance", "distance: ", min = 0, max = 10, value = 5, step = 0.5),
+                            
+                            selectInput("type", "Type:", Total_Type, multiple = T, width = 1000),
                             
                             textOutput("Restaurant_Output"),
                             
@@ -270,6 +283,51 @@ server <- function(input, output) {
   
   
   
+  observeEvent(input$type,{
+    
+    if(!is.null(input$type)){
+      
+      print(input$type)
+      
+      TargetPT_CrimeGeo <- Cal_Dist_RowData_Point(Crime_Geo_Data, Position()["Target_Lat"],  Position()["Target_Lon"])
+      
+      TargetPT_CrimeGeo_Distance_Order <- order(TargetPT_CrimeGeo$Distance, decreasing = FALSE)
+      
+      TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Distance_Order,]
+      
+      TargetPT_CrimeGeo <- merge(TargetPT_CrimeGeo[TargetPT_CrimeGeo$Distance <= input$distance,], Crime_Data, by.x = "CMPLNT_NUM", by.y = "CMPLNT_NUM")[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude", "Distance", "PD_DESC")]
+      
+      # print(TargetPT_CrimeGeo)
+      
+      Selected_Crime <- data.frame()
+      
+      for (type in input$type) {
+        
+        Selected_Crime <- rbind(Selected_Crime, TargetPT_CrimeGeo[TargetPT_CrimeGeo$PD_DESC == type , ])
+        
+      }
+      
+      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Crime") %>% addMarkers(lng = Selected_Crime$Crime_Longitude, lat = Selected_Crime$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() )
+      
+      
+    }
+    
+    else{
+      
+      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Crime")
+      
+    }
+    
+    
+    
+    
+  }, ignoreNULL = FALSE)  
+  
+  
+  
+  
+  
+  
   observeEvent(input$distance,{
     
     
@@ -280,8 +338,11 @@ server <- function(input, output) {
     
     TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Distance_Order,]
     
-    print(nrow(TargetPT_CrimeGeo[TargetPT_CrimeGeo$Distance <= input$distance,]))
+    TargetPT_CrimeGeo <- merge(TargetPT_CrimeGeo[TargetPT_CrimeGeo$Distance <= input$distance,], Crime_Data, by.x = "CMPLNT_NUM", by.y = "CMPLNT_NUM")[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude", "Distance", "PD_DESC")]
     
+    # print(TargetPT_CrimeGeo)
+    
+    leafletProxy("Map") %>% removeMarkerCluster(layerId = "Crime") %>% addMarkers(lng = TargetPT_CrimeGeo$Crime_Longitude, lat = TargetPT_CrimeGeo$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() )
     
   }, ignoreNULL = FALSE)
   
