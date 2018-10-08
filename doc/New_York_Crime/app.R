@@ -25,6 +25,13 @@ library("htmltools")
 
 Crime_Data <- read.csv("../../data/NYC_Crime_Data/NYC_crime.csv")
 
+Crime_Geo_Data <- Crime_Data[, c("CMPLNT_NUM", "Latitude", "Longitude")]
+
+colnames(Crime_Geo_Data) <- c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")
+
+
+######################## Start of Search_Nearby  ##################################################
+
 # Search Number can not exceed 50, if exceed 50 then the page will become bad
 
 Search_Nearby <- function(Search_Interest, Position_Latitude, Position_Longitude, Search_Range, Search_Number){
@@ -77,12 +84,12 @@ Search_Nearby <- function(Search_Interest, Position_Latitude, Position_Longitude
 
 # Search_Nearby("hotel", Target_Lat, Target_Lon, 1700, 10)
 
+######################## End of Search_Nearby  ##################################################
+
+
+######################## Start of Cal_Dist_RowData_Point  ##################################################
 
 # Calculate the distance for each row between one point
-
-Crime_Geo_Data <- Crime_Data[, c("CMPLNT_NUM", "Latitude", "Longitude")]
-
-colnames(Crime_Geo_Data) <- c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")
 
 Cal_Dist_RowData_Point <- function(Geo_Data, Original_Lat, Original_Lon){
   
@@ -99,8 +106,11 @@ Cal_Dist_RowData_Point <- function(Geo_Data, Original_Lat, Original_Lon){
 
 # Cal_Dist_RowData_Point(Crime_Geo_Data, Target_Lat, Target_Lon)
 
+######################## End of Cal_Dist_RowData_Point  ##################################################
 
 
+
+######################## Start of Cal_Dist_DF  ##################################################
 
 # note: GeoData should have same column syntax, first is id, second is lat, last is lon
 # Two GeoData should have different column names for id, lat and lon
@@ -141,8 +151,79 @@ Cal_Dist_DF <- function(GeoData1, GeoData2){
   
 }
 
+######################## End of Cal_Dist_DF  ##################################################
 
+
+
+######################## Start of Selected_Crime  ##################################################
+
+# This is function to data frame which contain all the crimes which are nearby the current position
+Selected_Crime <- function(Target_Position, Time_Range, Type, Distance_to_Target, Crime_Geo_Info_Data, Original_Crime_Data){
+  
+  Range_Min_Time <- format(Time_Range, "%H:%M:%S", tz = "America/New_York")[1]
+  
+  Range_Max_Time <- format(Time_Range, "%H:%M:%S", tz = "America/New_York")[2]
+  
+  
+  if(!is.null(Type)){
+    
+    print(Type)
+    
+    TargetPT_CrimeGeo <- Cal_Dist_RowData_Point(Crime_Geo_Info_Data, Target_Position["Target_Lat"],  Target_Position["Target_Lon"])
+    
+    TargetPT_CrimeGeo_Distance_Order <- order(TargetPT_CrimeGeo$Distance, decreasing = FALSE)
+    
+    TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Distance_Order,]
+    
+    TargetPT_CrimeGeo <- merge(TargetPT_CrimeGeo[TargetPT_CrimeGeo$Distance <= Distance_to_Target,], Original_Crime_Data, by.x = "CMPLNT_NUM", by.y = "CMPLNT_NUM")[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude", "Distance", "PD_DESC", "CMPLNT_FR_TM")]
+    
+    # print(TargetPT_CrimeGeo)
+    
+    Selected_Crime <- data.frame()
+    
+    for (type in Type) {
+      
+      Selected_Crime <- rbind(Selected_Crime, TargetPT_CrimeGeo[TargetPT_CrimeGeo$PD_DESC == type , ])
+      
+    }
+    
+    Selected_Crime <- Selected_Crime[Selected_Crime$Distance <= Distance_to_Target, ]
+    
+    Selected_Crime_Index <- which(as.character(Selected_Crime$CMPLNT_FR_TM) >= Range_Min_Time & as.character(Selected_Crime$CMPLNT_FR_TM) <= Range_Max_Time )
+    
+    Selected_Crime <- Selected_Crime[Selected_Crime_Index,]
+    
+    return(Selected_Crime)
+    
+  }
+  
+  else{
+    
+    TargetPT_CrimeGeo <- Cal_Dist_RowData_Point(Crime_Geo_Info_Data, Target_Position["Target_Lat"],  Target_Position["Target_Lon"])
+    
+    TargetPT_CrimeGeo_Distance_Order <- order(TargetPT_CrimeGeo$Distance, decreasing = FALSE)
+    
+    TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Distance_Order,]
+    
+    TargetPT_CrimeGeo <- merge(TargetPT_CrimeGeo[TargetPT_CrimeGeo$Distance <= Distance_to_Target,], Original_Crime_Data, by.x = "CMPLNT_NUM", by.y = "CMPLNT_NUM")[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude", "Distance", "PD_DESC", "CMPLNT_FR_TM")]
+    
+    # print(class(TargetPT_CrimeGeo[1,"CMPLNT_FR_TM"]))
+    
+    TargetPT_CrimeGeo_Index <- which(as.character(TargetPT_CrimeGeo$CMPLNT_FR_TM) >= Range_Min_Time & as.character(TargetPT_CrimeGeo$CMPLNT_FR_TM) <= Range_Max_Time )
+    
+    TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Index,]
+    
+    return(TargetPT_CrimeGeo)
+    
+  }
+  
+}
+
+######################## End of Selected_Crime  ##################################################
  
+
+
+
 # # This is helper function to reverse the geocode
 # Get_Zip_Code <- function(GeoData){
 #   
@@ -164,6 +245,7 @@ Cal_Dist_DF <- function(GeoData1, GeoData2){
 # 
 # write.csv(Crime_Data, file = "Crime_Data.csv")
 
+
 Total_Type <- c()
 
 Type_Selection <- unique(Crime_Data$PD_DESC)
@@ -182,12 +264,13 @@ Min_Time <- as.POSIXlt("00:00:01", format = "%H:%M:%S", tz = "America/New_York")
 Max_Time <- as.POSIXlt("23:59:59", format = "%H:%M:%S", tz = "America/New_York")
 
 
+
 Current_Position_Content <- function(Num_Crime){
   return(paste(" ", Num_Crime))
 }
 
 
-
+###################### UI ##############################
 
 ui <- navbarPage("New York Crime Data",
                  tabPanel("Map", 
@@ -231,6 +314,11 @@ ui <- navbarPage("New York Crime Data",
    
 )
 
+
+###################### UI ##############################
+
+
+
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
@@ -242,9 +330,9 @@ server <- function(input, output) {
   
   
   
+######################## Start of Restaurants  ##################################################
   
-  
-  # Restaurant
+############################## Restaurant ##############################
   observeEvent(input$Restaurant,{
     
     if(input$Restaurant == TRUE){
@@ -266,10 +354,12 @@ server <- function(input, output) {
     
     
   }, ignoreNULL = FALSE)
+
+############################## Restaurant ############################## 
   
   
+############################## Restaurant Crime distance ############################## 
   
-  # Restaurant distance
   observeEvent(input$restaurant_distance,{
     
     if(input$Restaurant == TRUE){
@@ -303,17 +393,21 @@ server <- function(input, output) {
     
     
   }, ignoreNULL = FALSE)
+
+############################## Restaurant Crime distance ############################## 
+
   
+######################## End of Restaurants  ##################################################
+
+
 
   
   
+######################## Start of Hotels  ##################################################
   
   
+######################################  Hotels #################################### 
   
-
-  
-  
-  # Hotels
   observeEvent(input$Hotels,{
     
     greenLeafIcon <- makeIcon(
@@ -346,9 +440,11 @@ server <- function(input, output) {
     
   }, ignoreNULL = FALSE)
   
+######################################  Hotels #################################### 
   
   
-  # Restaurant distance
+######################################  Hotels Crime Distance ####################################
+  
   observeEvent(input$hotels_distance,{
     
     if(input$Hotels == TRUE){
@@ -382,80 +478,31 @@ server <- function(input, output) {
     
     
   }, ignoreNULL = FALSE)
+
+######################################  Hotels Crime Distance ####################################
+
+
+######################## End of Hotels  ##################################################
+  
+
+  
+######################## Start of Observe Crime  ##################################################
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-  # Time
+  # Type
   observeEvent(input$type,{
     
-    Range_Min_Time <- format(input$time, "%H:%M:%S", tz = "America/New_York")[1]
     
-    Range_Max_Time <- format(input$time, "%H:%M:%S", tz = "America/New_York")[2]
+    Result_Crime_Data <- Selected_Crime(Position(), input$time, input$type, input$distance, Crime_Geo_Data, Crime_Data)
+   
+     leafletProxy("Map") %>% 
+      removeMarkerCluster(layerId = "Crime") %>% 
+      addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
+      removeMarker(layerId = "Current_Address") %>%
+      addMarkers(lng = Position()["Target_Lon"], lat = Position()["Target_Lat"], layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
     
-    
-    if(!is.null(input$type)){
       
-      print(input$type)
-      
-      TargetPT_CrimeGeo <- Cal_Dist_RowData_Point(Crime_Geo_Data, Position()["Target_Lat"],  Position()["Target_Lon"])
-      
-      TargetPT_CrimeGeo_Distance_Order <- order(TargetPT_CrimeGeo$Distance, decreasing = FALSE)
-      
-      TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Distance_Order,]
-      
-      TargetPT_CrimeGeo <- merge(TargetPT_CrimeGeo[TargetPT_CrimeGeo$Distance <= input$distance,], Crime_Data, by.x = "CMPLNT_NUM", by.y = "CMPLNT_NUM")[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude", "Distance", "PD_DESC", "CMPLNT_FR_TM")]
-      
-      # print(TargetPT_CrimeGeo)
-      
-      Selected_Crime <- data.frame()
-      
-      for (type in input$type) {
-        
-        Selected_Crime <- rbind(Selected_Crime, TargetPT_CrimeGeo[TargetPT_CrimeGeo$PD_DESC == type , ])
-        
-      }
-      
-      Selected_Crime <- Selected_Crime[Selected_Crime$Distance <= input$distance, ]
-      
-      Selected_Crime_Index <- which(as.character(Selected_Crime$CMPLNT_FR_TM) >= Range_Min_Time & as.character(Selected_Crime$CMPLNT_FR_TM) <= Range_Max_Time )
-      
-      Selected_Crime <- Selected_Crime[Selected_Crime_Index,]
-      
-      leafletProxy("Map") %>% 
-        removeMarkerCluster(layerId = "Crime") %>% 
-        addMarkers(lng = Selected_Crime$Crime_Longitude, lat = Selected_Crime$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position()["Target_Lon"], lat = Position()["Target_Lat"], layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Selected_Crime))))
-      
-      
-    }
-    
-    else{
-      
-      TargetPT_CrimeGeo <- Cal_Dist_RowData_Point(Crime_Geo_Data, Position()["Target_Lat"],  Position()["Target_Lon"])
-      
-      TargetPT_CrimeGeo_Distance_Order <- order(TargetPT_CrimeGeo$Distance, decreasing = FALSE)
-      
-      TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Distance_Order,]
-      
-      TargetPT_CrimeGeo <- merge(TargetPT_CrimeGeo[TargetPT_CrimeGeo$Distance <= input$distance,], Crime_Data, by.x = "CMPLNT_NUM", by.y = "CMPLNT_NUM")[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude", "Distance", "PD_DESC", "CMPLNT_FR_TM")]
-      
-      # print(class(TargetPT_CrimeGeo[1,"CMPLNT_FR_TM"]))
-      
-      TargetPT_CrimeGeo_Index <- which(as.character(TargetPT_CrimeGeo$CMPLNT_FR_TM) >= Range_Min_Time & as.character(TargetPT_CrimeGeo$CMPLNT_FR_TM) <= Range_Max_Time )
-      
-      TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Index,]
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Crime") %>% addMarkers(lng = TargetPT_CrimeGeo$Crime_Longitude, lat = TargetPT_CrimeGeo$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%removeMarker(layerId = "Current_Address") %>% addMarkers(lng = Position()["Target_Lon"], lat = Position()["Target_Lat"], layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(TargetPT_CrimeGeo))))
-      
-    }
+     
     
   }, ignoreNULL = FALSE)  
   
@@ -463,80 +510,14 @@ server <- function(input, output) {
   # Time
   observeEvent(input$time,{
     
-    print("===========")
+    Result_Crime_Data <- Selected_Crime(Position(), input$time, input$type, input$distance, Crime_Geo_Data, Crime_Data)
     
-    # This is to get time
-    Range_Min_Time <- format(input$time, "%H:%M:%S", tz = "America/New_York")[1]
+    leafletProxy("Map") %>% 
+      removeMarkerCluster(layerId = "Crime") %>% 
+      addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
+      removeMarker(layerId = "Current_Address") %>%
+      addMarkers(lng = Position()["Target_Lon"], lat = Position()["Target_Lat"], layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
     
-    Range_Max_Time <- format(input$time, "%H:%M:%S", tz = "America/New_York")[2]
-    
-    # Type
-    if(!is.null(input$type)){
-      
-      print(input$type)
-      
-      TargetPT_CrimeGeo <- Cal_Dist_RowData_Point(Crime_Geo_Data, Position()["Target_Lat"],  Position()["Target_Lon"])
-      
-      TargetPT_CrimeGeo_Distance_Order <- order(TargetPT_CrimeGeo$Distance, decreasing = FALSE)
-      
-      TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Distance_Order,]
-      
-      TargetPT_CrimeGeo <- merge(TargetPT_CrimeGeo[TargetPT_CrimeGeo$Distance <= input$distance,], Crime_Data, by.x = "CMPLNT_NUM", by.y = "CMPLNT_NUM")[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude", "Distance", "PD_DESC", "CMPLNT_FR_TM")]
-      
-      # print(TargetPT_CrimeGeo)
-      
-      Selected_Crime <- data.frame()
-      
-      for (type in input$type) {
-        
-        Selected_Crime <- rbind(Selected_Crime, TargetPT_CrimeGeo[TargetPT_CrimeGeo$PD_DESC == type , ])
-        
-      }
-      
-      # Distance
-      Selected_Crime <- Selected_Crime[Selected_Crime$Distance <= input$distance, ]
-      
-      # Time
-      Selected_Crime_Index <- which(as.character(Selected_Crime$CMPLNT_FR_TM) >= Range_Min_Time & as.character(Selected_Crime$CMPLNT_FR_TM) <= Range_Max_Time )
-      
-      Selected_Crime <- Selected_Crime[Selected_Crime_Index,]
-      
-      leafletProxy("Map") %>% 
-        removeMarkerCluster(layerId = "Crime") %>% 
-        addMarkers(lng = Selected_Crime$Crime_Longitude, lat = Selected_Crime$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position()["Target_Lon"], lat = Position()["Target_Lat"], layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Selected_Crime))))
-      
-      
-    }
-    
-    else{
-      
-      TargetPT_CrimeGeo <- Cal_Dist_RowData_Point(Crime_Geo_Data, Position()["Target_Lat"],  Position()["Target_Lon"])
-      
-      TargetPT_CrimeGeo_Distance_Order <- order(TargetPT_CrimeGeo$Distance, decreasing = FALSE)
-      
-      TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Distance_Order,]
-      
-      TargetPT_CrimeGeo <- merge(TargetPT_CrimeGeo[TargetPT_CrimeGeo$Distance <= input$distance,], Crime_Data, by.x = "CMPLNT_NUM", by.y = "CMPLNT_NUM")[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude", "Distance", "PD_DESC", "CMPLNT_FR_TM")]
-      
-      # print(class(TargetPT_CrimeGeo[1,"CMPLNT_FR_TM"]))
-      
-      TargetPT_CrimeGeo_Index <- which(as.character(TargetPT_CrimeGeo$CMPLNT_FR_TM) >= Range_Min_Time & as.character(TargetPT_CrimeGeo$CMPLNT_FR_TM) <= Range_Max_Time )
-      
-      TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Index,]
-      
-      leafletProxy("Map") %>% 
-        removeMarkerCluster(layerId = "Crime") %>% 
-        addMarkers(lng = TargetPT_CrimeGeo$Crime_Longitude, lat = TargetPT_CrimeGeo$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position()["Target_Lon"], lat = Position()["Target_Lat"], layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(TargetPT_CrimeGeo))))
-      
-    }
-    
-    # print(format(input$time, "%H:%M:%S", tz = "America/New_York"))
-    
-    # print(format(input$time, "%H:%M:%S", tz = "America/New_York") > as.character(Crime_Data$CMPLNT_FR_TM[1]))
     
     
   }, ignoreNULL = FALSE)
@@ -546,92 +527,34 @@ server <- function(input, output) {
   # Distance
   observeEvent(input$distance,{
     
-    Range_Min_Time <- format(input$time, "%H:%M:%S", tz = "America/New_York")[1]
+    Result_Crime_Data <- Selected_Crime(Position(), input$time, input$type, input$distance, Crime_Geo_Data, Crime_Data)
     
-    Range_Max_Time <- format(input$time, "%H:%M:%S", tz = "America/New_York")[2]
+    leafletProxy("Map") %>% 
+      removeMarkerCluster(layerId = "Crime") %>% 
+      addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
+      removeMarker(layerId = "Current_Address") %>%
+      addMarkers(lng = Position()["Target_Lon"], lat = Position()["Target_Lat"], layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
     
     
-    if(!is.null(input$type)){
-      
-      print(input$type)
-      
-      TargetPT_CrimeGeo <- Cal_Dist_RowData_Point(Crime_Geo_Data, Position()["Target_Lat"],  Position()["Target_Lon"])
-      
-      TargetPT_CrimeGeo_Distance_Order <- order(TargetPT_CrimeGeo$Distance, decreasing = FALSE)
-      
-      TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Distance_Order,]
-      
-      TargetPT_CrimeGeo <- merge(TargetPT_CrimeGeo[TargetPT_CrimeGeo$Distance <= input$distance,], Crime_Data, by.x = "CMPLNT_NUM", by.y = "CMPLNT_NUM")[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude", "Distance", "PD_DESC", "CMPLNT_FR_TM")]
-      
-      # print(TargetPT_CrimeGeo)
-      
-      Selected_Crime <- data.frame()
-      
-      for (type in input$type) {
-        
-        Selected_Crime <- rbind(Selected_Crime, TargetPT_CrimeGeo[TargetPT_CrimeGeo$PD_DESC == type , ])
-        
-      }
-      
-      Selected_Crime <- Selected_Crime[Selected_Crime$Distance <= input$distance, ]
-      
-      Selected_Crime_Index <- which(as.character(Selected_Crime$CMPLNT_FR_TM) >= Range_Min_Time & as.character(Selected_Crime$CMPLNT_FR_TM) <= Range_Max_Time )
-      
-      Selected_Crime <- Selected_Crime[Selected_Crime_Index,]
-      
-      leafletProxy("Map") %>% 
-        removeMarkerCluster(layerId = "Crime") %>% 
-        addMarkers(lng = Selected_Crime$Crime_Longitude, lat = Selected_Crime$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position()["Target_Lon"], lat = Position()["Target_Lat"], layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Selected_Crime))))
-      
-      
-    }
-    
-    else{
-      
-      TargetPT_CrimeGeo <- Cal_Dist_RowData_Point(Crime_Geo_Data, Position()["Target_Lat"],  Position()["Target_Lon"])
-      
-      TargetPT_CrimeGeo_Distance_Order <- order(TargetPT_CrimeGeo$Distance, decreasing = FALSE)
-      
-      TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Distance_Order,]
-      
-      TargetPT_CrimeGeo <- merge(TargetPT_CrimeGeo[TargetPT_CrimeGeo$Distance <= input$distance,], Crime_Data, by.x = "CMPLNT_NUM", by.y = "CMPLNT_NUM")[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude", "Distance", "PD_DESC", "CMPLNT_FR_TM")]
-      
-      # print(class(TargetPT_CrimeGeo[1,"CMPLNT_FR_TM"]))
-      
-      TargetPT_CrimeGeo_Index <- which(as.character(TargetPT_CrimeGeo$CMPLNT_FR_TM) >= Range_Min_Time & as.character(TargetPT_CrimeGeo$CMPLNT_FR_TM) <= Range_Max_Time )
-      
-      TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Index,]
-      
-      leafletProxy("Map") %>% 
-        removeMarkerCluster(layerId = "Crime") %>% 
-        addMarkers(lng = TargetPT_CrimeGeo$Crime_Longitude, lat = TargetPT_CrimeGeo$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position()["Target_Lon"], lat = Position()["Target_Lat"], layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(TargetPT_CrimeGeo))))
-      
-    }
     
     
   }, ignoreNULL = FALSE)
   
+######################## End of Observe Crime  ##################################################
+
   
   
-  # 
-  # output$Restaurant_Output <- renderText({ 
-  #   input$Restaurant
-  # })
-  # 
-  # 
-  
-  
-  
-  # OUTPUT
+################################### OUTPUT ################################### 
   output$Map <- renderLeaflet({
     
     leaflet() %>% setView(lng = as.numeric(Position()["Target_Lon"]), lat = as.numeric(Position()["Target_Lat"]), zoom = 15) %>% addMarkers(lng = Position()["Target_Lon"], lat = Position()["Target_Lat"], layerId = "Current_Address") %>% addTiles()
 
   })
+  
+################################### OUTPUT ################################### 
+  
+  
+  
   # 
   # 
   # observeEvent(input$Search_Term, {
