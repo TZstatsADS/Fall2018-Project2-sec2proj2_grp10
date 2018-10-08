@@ -16,6 +16,7 @@ library("geojsonio")
 library("shiny")
 library("geosphere")
 library("dplyr")
+library("plyr")
 library("ggmap")
 library("stringr")
 library("htmlwidgets")
@@ -124,7 +125,7 @@ Cal_Dist_DF <- function(GeoData1, GeoData2){
   
   GeoData2LonNames <- GeoData2ColNames[3]
   
-  Merged_Geo_Data <- merge(Hotel_Geo_Data, Crime_Geo_Data)
+  Merged_Geo_Data <- merge(GeoData1, GeoData2)
   
   Calculate_Distance <- function(MergedData){
     
@@ -202,6 +203,10 @@ ui <- navbarPage("New York Crime Data",
                             
                             sliderInput("distance", "distance: ", min = 0, max = 10, value = 5, step = 0.1),
                             
+                            sliderInput("restaurant_distance", "restaurant_distance: ", min = 0, max = 5, value = 1, step = 0.1),
+                            
+                            sliderInput("hotels_distance", "hotels_distance: ", min = 0, max = 5, value = 1, step = 0.1),
+                            
                             sliderInput("time", "time: ", min = Min_Time, max = Max_Time, value =  c(Min_Time, Max_Time), timeFormat = "%H:%M:%S", step = 1),
                             
                             selectInput("type", "Type:", Total_Type, multiple = T, width = 1000),
@@ -235,6 +240,11 @@ server <- function(input, output) {
   })
   
   
+  
+  
+  
+  
+  # Restaurant
   observeEvent(input$Restaurant,{
     
     if(input$Restaurant == TRUE){
@@ -243,9 +253,44 @@ server <- function(input, output) {
       
       Restaurant_DF <- Search_Nearby("Restaurant", Position()["Target_Lat"],  Position()["Target_Lon"], 1700, Range)
       
-      print(Restaurant_DF)
-      
       leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Restaurant_DF$Lon, lat = Restaurant_DF$Lat, clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+      
+    }
+    
+    else{
+      print(input$Restaurant)
+      
+      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+      
+    }
+    
+    
+  }, ignoreNULL = FALSE)
+  
+  
+  
+  # Restaurant distance
+  observeEvent(input$restaurant_distance,{
+    
+    if(input$Restaurant == TRUE){
+      
+      Range <- ifelse(input$Map_zoom <=5, 10, ifelse(input$Map_zoom <= 10, 20, ifelse(input$Map_zoom <= 15, 30, 40)))
+      
+      Restaurant_DF <- Search_Nearby("Restaurant", Position()["Target_Lat"],  Position()["Target_Lon"], 1700, Range)
+      
+      Restaurant_Geo_DF <- Restaurant_DF[, c("ID", "Lat", "Lon")]
+      
+      Merged_Data <- Cal_Dist_DF(Restaurant_Geo_DF, Crime_Geo_Data)
+      
+      Merged_Data <- Merged_Data[Merged_Data$Distance <= input$restaurant_distance, ]
+      
+      Restaurant_Count_DF <- ddply(Merged_Data, .(ID), nrow)
+      
+      colnames(Restaurant_Count_DF) <- c("ID", "Crime_Count")
+      
+      result_df <- merge(Restaurant_DF, Restaurant_Count_DF, by.x = "ID", by.y = "ID")
+      
+      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = result_df$Lon, lat = result_df$Lat, popup = htmlEscape(Current_Position_Content(result_df$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
       
     }
     
@@ -262,6 +307,13 @@ server <- function(input, output) {
 
   
   
+  
+  
+  
+
+  
+  
+  # Hotels
   observeEvent(input$Hotels,{
     
     greenLeafIcon <- makeIcon(
@@ -293,6 +345,51 @@ server <- function(input, output) {
     }
     
   }, ignoreNULL = FALSE)
+  
+  
+  
+  # Restaurant distance
+  observeEvent(input$hotels_distance,{
+    
+    if(input$Hotels == TRUE){
+      
+      Range <- ifelse(input$Map_zoom <=5, 10, ifelse(input$Map_zoom <= 10, 20, ifelse(input$Map_zoom <= 15, 30, 40)))
+      
+      Hotels_DF <- Search_Nearby("Hotels", Position()["Target_Lat"],  Position()["Target_Lon"], 1700, Range)
+      
+      Hotels_Geo_DF <- Hotels_DF[, c("ID", "Lat", "Lon")]
+      
+      Merged_Data <- Cal_Dist_DF(Hotels_Geo_DF, Crime_Geo_Data)
+      
+      Merged_Data <- Merged_Data[Merged_Data$Distance <= input$hotels_distance, ]
+      
+      Hotels_Count_DF <- ddply(Merged_Data, .(ID), nrow)
+      
+      colnames(Hotels_Count_DF) <- c("ID", "Crime_Count")
+      
+      result_df <- merge(Hotels_DF, Hotels_Count_DF, by.x = "ID", by.y = "ID")
+      
+      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(lng = result_df$Lon, lat = result_df$Lat, popup = htmlEscape(Current_Position_Content(result_df$Crime_Count)), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
+      
+    }
+    
+    else{
+      print(input$Hotels)
+      
+      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+      
+    }
+    
+    
+  }, ignoreNULL = FALSE)
+  
+  
+  
+  
+  
+  
+  
+  
   
   
   # Time
