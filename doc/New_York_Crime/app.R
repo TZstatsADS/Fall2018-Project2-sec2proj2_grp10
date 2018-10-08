@@ -207,8 +207,6 @@ Selected_Crime <- function(Target_Position, Time_Range, Type, Distance_to_Target
     
     TargetPT_CrimeGeo <- merge(TargetPT_CrimeGeo[TargetPT_CrimeGeo$Distance <= Distance_to_Target,], Original_Crime_Data, by.x = "CMPLNT_NUM", by.y = "CMPLNT_NUM")[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude", "Distance", "PD_DESC", "CMPLNT_FR_TM")]
     
-    # print(class(TargetPT_CrimeGeo[1,"CMPLNT_FR_TM"]))
-    
     TargetPT_CrimeGeo_Index <- which(as.character(TargetPT_CrimeGeo$CMPLNT_FR_TM) >= Range_Min_Time & as.character(TargetPT_CrimeGeo$CMPLNT_FR_TM) <= Range_Max_Time )
     
     TargetPT_CrimeGeo <- TargetPT_CrimeGeo[TargetPT_CrimeGeo_Index,]
@@ -221,6 +219,59 @@ Selected_Crime <- function(Target_Position, Time_Range, Type, Distance_to_Target
 
 ######################## End of Selected_Crime  ##################################################
  
+
+
+####################### Start of Selected_Business ###########################################
+
+Selected_Business <- function(Target_Position, Business_Type, Zoom_Size, Business_Crime_Distance, Business_Rating, Business_Price_Level, Crime_Geo_Info_Data){
+  
+  Max_Rating <- Business_Rating[2]
+  
+  Min_Rating <- Business_Rating[1]
+  
+  Range <- ifelse(Zoom_Size <=5, 10, ifelse(Zoom_Size <= 10, 20, ifelse(Zoom_Size <= 15, 30, 40)))
+  
+  Business_Original_DF <- Search_Nearby(Business_Type, Target_Position["Target_Lat"],  Target_Position["Target_Lon"], 1700, Range)
+  
+  Business_Original_Geo_DF <- Business_Original_DF[, c("ID", "Lat", "Lon")]
+  
+  Business_Crime_Data <- Cal_Dist_DF(Business_Original_Geo_DF, Crime_Geo_Info_Data)
+  
+  Business_Crime_Data <- Business_Crime_Data[Business_Crime_Data$Distance <= Business_Crime_Distance, ]
+  
+  Business_Crime_Count_DF <- ddply(Business_Crime_Data, .(ID), nrow)
+  
+  colnames(Business_Crime_Count_DF) <- c("ID", "Crime_Count")
+  
+  Result_Business_df <- merge(Business_Original_DF, Business_Crime_Count_DF, by.x = "ID", by.y = "ID")
+  
+  Result_Business_df <- Result_Business_df[Result_Business_df$Rating <= Max_Rating & Result_Business_df$Rating >= Min_Rating,]
+  
+  if(!is.null(Business_Price_Level)){
+    
+    Final_Result_Business_df <- data.frame()
+    
+    for (price_level in Business_Price_Level) {
+      
+      Final_Result_Business_df <- rbind(Final_Result_Business_df, Result_Business_df[Result_Business_df$Price_Level == price_level,] )
+      
+    }
+    
+    return(Final_Result_Business_df)
+    
+  }
+  
+  else{
+    
+    return(Result_Business_df)
+    
+  }
+  
+}
+
+####################### End of Selected_Business ###########################################
+
+
 
 
 
@@ -258,6 +309,10 @@ for (type in Type_Selection) {
 
 names(Total_Type)  <- Type_Selection
 
+price_level <- c("$", "$$", "$$$", "$$$$")
+
+names(price_level) <- c("$", "$$", "$$$", "$$$$")
+
 
 Min_Time <- as.POSIXlt("00:00:01", format = "%H:%M:%S", tz = "America/New_York")
 
@@ -287,6 +342,10 @@ ui <- navbarPage("New York Crime Data",
                             sliderInput("distance", "distance: ", min = 0, max = 10, value = 5, step = 0.1),
                             
                             sliderInput("restaurant_distance", "restaurant_distance: ", min = 0, max = 5, value = 1, step = 0.1),
+                            
+                            sliderInput("restaurant_rating", "restaurant_rating: ", min = 0, max = 5, value = c(3,5), step = 0.5),
+                            
+                            selectInput("restaurant_price_level", "restaurant_price_level: ", price_level, multiple = T, width = 1000),
                             
                             sliderInput("hotels_distance", "hotels_distance: ", min = 0, max = 5, value = 1, step = 0.1),
                             
@@ -337,16 +396,14 @@ server <- function(input, output) {
     
     if(input$Restaurant == TRUE){
       
-      Range <- ifelse(input$Map_zoom <=5, 10, ifelse(input$Map_zoom <= 10, 20, ifelse(input$Map_zoom <= 15, 30, 40)))
+      Selected_Restaurant <- Selected_Business(Position(), "Restaurant", input$Map_zoom, input$restaurant_distance, input$restaurant_rating, input$restaurant_price_level, Crime_Geo_Data)
       
-      Restaurant_DF <- Search_Nearby("Restaurant", Position()["Target_Lat"],  Position()["Target_Lon"], 1700, Range)
+      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Selected_Restaurant$Lon, lat = Selected_Restaurant$Lat, popup = htmlEscape(Current_Position_Content(Selected_Restaurant$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
       
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Restaurant_DF$Lon, lat = Restaurant_DF$Lat, clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
       
     }
     
     else{
-      print(input$Restaurant)
       
       leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
       
@@ -364,28 +421,14 @@ server <- function(input, output) {
     
     if(input$Restaurant == TRUE){
       
-      Range <- ifelse(input$Map_zoom <=5, 10, ifelse(input$Map_zoom <= 10, 20, ifelse(input$Map_zoom <= 15, 30, 40)))
+      Selected_Restaurant <- Selected_Business(Position(), "Restaurant", input$Map_zoom, input$restaurant_distance, input$restaurant_rating, input$restaurant_price_level, Crime_Geo_Data)
       
-      Restaurant_DF <- Search_Nearby("Restaurant", Position()["Target_Lat"],  Position()["Target_Lon"], 1700, Range)
+      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Selected_Restaurant$Lon, lat = Selected_Restaurant$Lat, popup = htmlEscape(Current_Position_Content(Selected_Restaurant$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
       
-      Restaurant_Geo_DF <- Restaurant_DF[, c("ID", "Lat", "Lon")]
-      
-      Merged_Data <- Cal_Dist_DF(Restaurant_Geo_DF, Crime_Geo_Data)
-      
-      Merged_Data <- Merged_Data[Merged_Data$Distance <= input$restaurant_distance, ]
-      
-      Restaurant_Count_DF <- ddply(Merged_Data, .(ID), nrow)
-      
-      colnames(Restaurant_Count_DF) <- c("ID", "Crime_Count")
-      
-      result_df <- merge(Restaurant_DF, Restaurant_Count_DF, by.x = "ID", by.y = "ID")
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = result_df$Lon, lat = result_df$Lat, popup = htmlEscape(Current_Position_Content(result_df$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
       
     }
     
     else{
-      print(input$Restaurant)
       
       leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
       
@@ -396,6 +439,61 @@ server <- function(input, output) {
 
 ############################## Restaurant Crime distance ############################## 
 
+
+############################## Restaurant Rating ############################## 
+  
+  observeEvent(input$restaurant_rating,{
+    
+    if(input$Restaurant == TRUE){
+      
+      Selected_Restaurant <- Selected_Business(Position(), "Restaurant", input$Map_zoom, input$restaurant_distance, input$restaurant_rating, input$restaurant_price_level, Crime_Geo_Data)
+      
+      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Selected_Restaurant$Lon, lat = Selected_Restaurant$Lat, popup = htmlEscape(Current_Position_Content(Selected_Restaurant$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+      
+      
+    }
+    
+    else{
+      
+      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+      
+    }
+    
+    
+  }, ignoreNULL = FALSE)
+  
+
+############################## Restaurant Rating ############################## 
+  
+  
+
+############################## Restaurant Price Leve ############################## 
+  
+  observeEvent(input$restaurant_price_level,{
+    
+    
+    if(input$Restaurant == TRUE){
+      
+      Selected_Restaurant <- Selected_Business(Position(), "Restaurant", input$Map_zoom, input$restaurant_distance, input$restaurant_rating, input$restaurant_price_level, Crime_Geo_Data)
+      
+      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Selected_Restaurant$Lon, lat = Selected_Restaurant$Lat, popup = htmlEscape(Current_Position_Content(Selected_Restaurant$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+      
+      
+    }
+    
+    else{
+      
+      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+      
+    }
+    
+    
+  }, ignoreNULL = FALSE)
+  
+  
+  ############################## Restaurant Price Level ############################## 
+  
+  
   
 ######################## End of Restaurants  ##################################################
 
