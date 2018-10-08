@@ -17,10 +17,10 @@ library("shiny")
 library("geosphere")
 library("dplyr")
 library("plyr")
-library("ggmap")
 library("stringr")
 library("htmlwidgets")
 library("htmltools")
+library("shinyjs")
 
 
 Crime_Data <- read.csv("../../data/NYC_Crime_Data/NYC_crime.csv")
@@ -370,6 +370,8 @@ ui <- navbarPage("New York Crime Data",
                  tabPanel("Map", 
                           fluidPage(
                             
+                            useShinyjs(),
+                            
                             includeCSS("Crime_Map.css"),
                             
                             titlePanel("Geo Info for Crime Data"),
@@ -379,12 +381,14 @@ ui <- navbarPage("New York Crime Data",
                             
                             sliderInput("distance", "distance: ", min = 0, max = 10, value = 5, step = 0.1),
                             
-                            sliderInput("restaurant_distance", "restaurant_distance: ", min = 0, max = 5, value = 1, step = 0.1),
-                            
-                            sliderInput("restaurant_rating", "restaurant_rating: ", min = 0, max = 5, value = c(3,5), step = 0.5),
-                            
-                            selectInput("restaurant_price_level", "restaurant_price_level: ", price_level, multiple = T, width = 1000),
-                            
+                            div(id="restaurantinput", 
+                                            
+                                            sliderInput("restaurant_distance", "restaurant_distance: ", min = 0, max = 5, value = 1, step = 0.1),
+                                            
+                                            sliderInput("restaurant_rating", "restaurant_rating: ", min = 0, max = 5, value = c(3,5), step = 0.5),
+                                            
+                                            selectInput("restaurant_price_level", "restaurant_price_level: ", price_level, multiple = T, width = 1000)
+                            ),
                             
                             
                             sliderInput("time", "time: ", min = Min_Time, max = Max_Time, value =  c(Min_Time, Max_Time), timeFormat = "%H:%M:%S", step = 1),
@@ -434,6 +438,8 @@ server <- function(input, output) {
     
     if(input$Restaurant == TRUE){
       
+      shinyjs::show( id = "restaurantinput")
+      
       Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$restaurant_distance, input$restaurant_rating, input$restaurant_price_level, Crime_Geo_Data)
       
       leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Selected_Restaurant$Lon, lat = Selected_Restaurant$Lat, popup = htmlEscape(Current_Position_Content(Selected_Restaurant$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
@@ -442,6 +448,8 @@ server <- function(input, output) {
     }
     
     else{
+      
+      shinyjs::hide(id = "restaurantinput")
       
       leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
       
@@ -552,8 +560,6 @@ server <- function(input, output) {
       removeMarker(layerId = "Current_Address") %>%
       addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
     
-      
-     
     
   }, ignoreNULL = FALSE)  
   
@@ -596,8 +602,6 @@ server <- function(input, output) {
   
   
 ################################### OUTPUT ################################### 
-  
-  
   
   observeEvent(input$button,{
     
@@ -648,102 +652,7 @@ server <- function(input, output) {
 ################################### OUTPUT ################################### 
   
   
-  
-  # 
-  # 
-  # observeEvent(input$Search_Term, {
-  #   
-  #   print(input$Search_Term)
-  #   
-  #   if(!is.null(input$Search_Term)){
-  #     
-  #     resultdf <- data.frame()
-  #     
-  #     for (Search_Term in input$Search_Term) {
-  #       
-  #       resultdf <- rbind(resultdf, Search_Nearby(Search_Term, Target_Lat, Target_Lon, 1700, 10))
-  #       
-  #     }
-  #     
-  #     
-  #     leafletProxy("Map") %>% clearMarkers()  %>% addMarkers(lng = resultdf$Lon, lat = resultdf$Lat)
-  #     
-  #   }
-  #   
-  #   else{
-  #     leafletProxy("Map") %>% clearMarkers()
-  #   }
-  #   
-  #   
-  # }, ignoreNULL = FALSE)
-  
-  
-  # 
-  # observeEvent(input$Map_zoom, {
-  #   
-  #   print(input$Search_Term)
-  #   if(!is.null(input$Search_Term)){
-  #     
-  #     resultdf <- data.frame()
-  #     
-  #     for (Search_Term in input$Search_Term) {
-  #       
-  #       if(input$Map_zoom <= 5 && input$Map_zoom >= 1){
-  #         
-  #         resultdf <- rbind(resultdf, Search_Nearby(Search_Term, Target_Lat, Target_Lon, 1700, 10))
-  #       
-  #       }
-  #       
-  #       
-  #       else if(input$Map_zoom <= 10 && input$Map_zoom >= 6){
-  #         
-  #         resultdf <- rbind(resultdf, Search_Nearby(Search_Term, Target_Lat, Target_Lon, 1700, 20))
-  #         
-  #       }
-  #       
-  #       else{
-  #         resultdf <- rbind(resultdf, Search_Nearby(Search_Term, Target_Lat, Target_Lon, 1700, 40))
-  #       }
-  #       
-  #     }
-  #     
-  #     leafletProxy("Map") %>% clearMarkers()  %>% addMarkers(lng = resultdf$Lon, lat = resultdf$Lat)
-  #     
-  #   }
-  #   
-  #   else{
-  #     leafletProxy("Map") %>% clearMarkers()
-  #   }
-  #   
-  # })
-  
-   # 
-   # output$Crime_Map <- renderLeaflet({
-   #   
-   #   NYCGeoJson <- geojson_read('../../data/NYC_Crime_Data/NYC Street Centerline (CSCL).geojson', what = "sp")
-   #   
-   #   # nyc_neighborhoods <- readOGR(content(NYCGeoJson,'text'), 'OGRGeoJSON', verbose = F)
-   #   # NYCGeoJson$communityDistrict <- as.character(NYCGeoJson$communityDistrict)
-   #   Crime_Data <- read.csv("../../data/NYC_Crime_Data/NYPD_Complaint_Data_Current_YTD.csv")
-   #   
-   #   Crime_Data <- Crime_Data[1:1000,]
-   #   
-   #   Crime_Data_Geo_Info <- data.frame(CMPLNT_NUM = Crime_Data$CMPLNT_NUM, Lon = Crime_Data$Longitude, Lat = Crime_Data$Latitude)
-   #   
-   #   Map <- leaflet(data = Crime_Data_Geo_Info) %>% setView(lng = -73.9712, lat = 40.7831, zoom = 10) %>% addTiles() 
-   #   
-   #   Map %>% addMarkers(lng = ~Lon, lat = ~Lat) %>% addPolygons(data = NYCGeoJson,  fill = TRUE, fillOpacity = 0.1, highlightOptions = highlightOptions(
-   #     color='#00ff00', opacity = 1, weight = 2, fillOpacity = 0.5,
-   #     bringToFront = TRUE, sendToBack = TRUE))
-   #   
-   # })
-   # 
-   # observeEvent(input$Crime_Map_shape_click, {
-   #   Polygon_Click <- input$Crime_Map_shape_click
-   #   Polygon_ID <- Polygon_Click$id
-   #   print(Polygon_Click)
-   #   leafletProxy("Crime_Map") %>% removeShape("Layer_104" )
-   # })
+
 }
 
 # Run the application 
