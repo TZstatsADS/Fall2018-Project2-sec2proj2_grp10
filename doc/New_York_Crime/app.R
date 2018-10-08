@@ -30,6 +30,45 @@ Crime_Geo_Data <- Crime_Data[, c("CMPLNT_NUM", "Latitude", "Longitude")]
 colnames(Crime_Geo_Data) <- c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")
 
 
+######################## Start of Get_Geo_Info ######################## 
+
+Get_Geo_Info <- function(Address){
+  
+  Search_Address <- gsub(" ", "+", Address)
+  
+  Personal_Key <- "AIzaSyC3zuhMPkCVTVycI71lSvVHzNDHmNuCUbk"
+  
+  Get_Data_URL <- paste("https://maps.googleapis.com/maps/api/geocode/json?address=", Search_Address, "&key=", Personal_Key, sep = "")
+  
+  Response_Content <- GET(Get_Data_URL)
+  
+  Geo_Info <- c()
+  
+  if(content(Response_Content)$status == "OK"){
+    
+    Geo_Info <- c(lat = content(Response_Content)$results[[1]]$geometry$location$lat, lon = content(Response_Content)$results[[1]]$geometry$location$lng )
+    
+  }
+
+  else{
+    
+    Geo_Info <- NULL
+
+  }
+  
+  return(Geo_Info)
+  
+  
+}
+
+# Get_Geo_Info("sdfasdfasdfa asdfasdfasdf")
+
+
+######################## End of Get_Geo_Info ######################## 
+
+
+
+
 ######################## Start of Search_Nearby  ##################################################
 
 # Search Number can not exceed 50, if exceed 50 then the page will become bad
@@ -564,19 +603,35 @@ server <- function(input, output) {
     
     if(input$button >= 1){
       
-      print(input$Search)
+      Geo_Info <- Get_Geo_Info(input$Search)
       
-      Position$Target_Lat <- 40.7831
-      Position$Target_Lon <- -73.9712
+      if(!is.null(Geo_Info) && !is.null(Geo_Info["lat"]) && !is.null(Geo_Info["lon"]) ){
+        
+        Position$Target_Lat <- Geo_Info["lat"]
+        Position$Target_Lon <- Geo_Info["lon"]
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$time, input$type, input$distance, Crime_Geo_Data, Crime_Data)
+        
+        leafletProxy("Map") %>% 
+          removeMarkerCluster(layerId = "Crime") %>% 
+          addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
+          removeMarker(layerId = "Current_Address") %>%
+          addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
+        
+        
+      }
       
-      Result_Crime_Data <- Selected_Crime(Position, input$time, input$type, input$distance, Crime_Geo_Data, Crime_Data)
+      else{
+        
+        showModal(modalDialog(
+          title = "Address Error!",
+          "There is no such address, please check the address again and input again! ",
+          easyClose = TRUE
+        ))
+        
+      }
       
-      leafletProxy("Map") %>% 
-        removeMarkerCluster(layerId = "Crime") %>% 
-        addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
-      
+
     }
     
     
