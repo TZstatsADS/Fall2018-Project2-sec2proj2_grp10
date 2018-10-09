@@ -24,7 +24,41 @@
 .box{
   border-top: none; 
   box-shadow: none;
-  background: "#222d32";
+  background: #222d32;
+}
+
+.nav-tabs-custom{
+  background: #222d32;
+}
+
+.nav-tabs-custom .tab-content{
+  background: #222d32;
+}
+
+.nav-tabs-custom .nav-tabs li.active:hover a, .nav-tabs-custom .nav-tabs li.active a{
+  color: white;
+  background-color: #222d32;
+}
+
+.nav-tabs {
+ border-bottom: none;
+}
+
+.nav-tabs-custom .nav-tabs li a{
+  color: white;
+}
+
+.nav-tabs-custom .nav-tabs li.active a {
+  border-right-color: #222d32;
+  border-left-color: #222d32;
+}
+
+body{
+  color: white;
+}
+
+.box-header{
+  color: white;
 }
 
 .irs-single, .irs-bar-edge, .irs-bar, .irs-from, .irs-to, .irs-single{
