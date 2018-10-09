@@ -52,3 +52,29 @@
 .nav-tabs-custom .nav-tabs li.active{
   border-top-color: #F39C12;
 }
+
+.Intro-Header{
+  text-align: center;
+  color: white;
+}
+
+.Intro-Search-Box{
+  background-color: rgba(255,255,255,0);
+}
+
+.Intro-board{
+  margin-top: 100px;
+}
+
+.Intro-board h1{
+  margin-bottom: 30px;
+}
+
+.Intro-board .form-group{
+  width: 100%;
+  text-align: center;
+  margin: auto;
+}
+
+
+
