@@ -24,6 +24,7 @@
 .box{
   border-top: none; 
   box-shadow: none;
+  background: "#222d32";
 }
 
 .irs-single, .irs-bar-edge, .irs-bar, .irs-from, .irs-to, .irs-single{
