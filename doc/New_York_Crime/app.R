@@ -260,6 +260,23 @@ Selected_Crime <- function(Target_Position, Time_Range, Type, Distance_to_Target
 ######################## End of Selected_Crime  ##################################################
  
 
+######################## Start of Count Crime Numbers ######################## 
+
+Crime_Business_Count <- function(Business_Crime_Data, Business_Crime_Distance){
+  
+  if(nrow(Business_Crime_Data[Business_Crime_Data$Distance <= Business_Crime_Distance,]) == 0){
+    return(0)
+  }
+  
+  else{
+    return(nrow(Business_Crime_Data[Business_Crime_Data$Distance <= Business_Crime_Distance,]))
+  }
+  
+}
+
+######################## End of Count Crime Numbers ######################## 
+
+
 
 ####################### Start of Selected_Business ###########################################
 
@@ -277,9 +294,7 @@ Selected_Business <- function(Target_Position, Business_Type, Zoom_Size, Busines
   
   Business_Crime_Data <- Cal_Dist_DF(Business_Original_Geo_DF, Crime_Geo_Info_Data)
   
-  Business_Crime_Data <- Business_Crime_Data[Business_Crime_Data$Distance <= Business_Crime_Distance, ]
-  
-  Business_Crime_Count_DF <- ddply(Business_Crime_Data, .(ID), nrow)
+  Business_Crime_Count_DF <- ddply(Business_Crime_Data, .(ID), Crime_Business_Count, Business_Crime_Distance = Business_Crime_Distance)
   
   colnames(Business_Crime_Count_DF) <- c("ID", "Crime_Count")
   
@@ -313,28 +328,6 @@ Selected_Business <- function(Target_Position, Business_Type, Zoom_Size, Busines
 
 
 
-
-
-# # This is helper function to reverse the geocode
-# Get_Zip_Code <- function(GeoData){
-#   
-#   ZipCodeContent <- revgeocode(as.numeric(GeoData))
-#   
-#   while (is.na(ZipCodeContent)) {
-#     
-#     ZipCodeContent <- revgeocode(as.numeric(GeoData))
-#     
-#   }
-#   
-#   ZipCode <- substr(str_extract(ZipCodeContent, ' [0-9]{5}, .{0,}'),2,6)
-#   
-#   return(ZipCode)
-#   
-# }
-# 
-# Crime_Data <- Crime_Data %>% mutate(Zip_Code = apply(Crime_Data[,c("Longitude", "Latitude")], 1, Get_Zip_Code))
-# 
-# write.csv(Crime_Data, file = "Crime_Data.csv")
 
 
 Total_Type <- c()
@@ -869,14 +862,7 @@ server <- function(input, output, session) {
   ######################## End of Entertainment  ##################################################
   
   
-  
-  
-  
-  
-  
-  
-  
-  
+
   
 
 ######################## Start of Observe Crime  ##################################################
