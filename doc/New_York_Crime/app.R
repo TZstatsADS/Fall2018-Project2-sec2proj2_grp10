@@ -21,6 +21,8 @@ library("stringr")
 library("htmlwidgets")
 library("htmltools")
 library("shinyjs")
+library("shinydashboard")
+library("shinymaterial")
 
 
 Crime_Data <- read.csv("../../data/NYC_Crime_Data/NYC_crime.csv")
@@ -366,59 +368,164 @@ Current_Position_Content <- function(Num_Crime){
 
 ###################### UI ##############################
 
-ui <- navbarPage("New York Crime Data",
-                 tabPanel("Map", 
-                          fluidPage(
-                            
-                            useShinyjs(),
-                            
-                            includeCSS("Crime_Map.css"),
-                            
-                            titlePanel("Geo Info for Crime Data"),
-                            
-                            checkboxInput("Restaurant", "Restaurant", value = FALSE, width = NULL),
-                            
-                            
-                            sliderInput("distance", "distance: ", min = 0, max = 10, value = 5, step = 0.1),
-                            
-                            div(id="restaurantinput", 
-                                            
-                                            sliderInput("restaurant_distance", "restaurant_distance: ", min = 0, max = 5, value = 1, step = 0.1),
-                                            
-                                            sliderInput("restaurant_rating", "restaurant_rating: ", min = 0, max = 5, value = c(3,5), step = 0.5),
-                                            
-                                            selectInput("restaurant_price_level", "restaurant_price_level: ", price_level, multiple = T, width = 1000)
-                            ),
-                            
-                            
-                            sliderInput("time", "time: ", min = Min_Time, max = Max_Time, value =  c(Min_Time, Max_Time), timeFormat = "%H:%M:%S", step = 1),
-                            
-                            selectInput("type", "Type:", Total_Type, multiple = T, width = 1000),
-                            
-                            actionButton("button", "An action button"),
-                            
-                            textInput("Search", "Search:", value = "", width = NULL, placeholder = NULL),
-                            
-                            
-                            textOutput("Restaurant_Output"),
-                            
-                            leafletOutput("Map")
-                            
-                            
-                            
-                          )
-                          
-                          
-                          ),
-       
-                 
-                 tabPanel("Other")
-   
-  
-   
-   
-   
+ui <- dashboardPage(
+  skin = "yellow",
+  dashboardHeader(title = "NYC Crime"),
+  dashboardSidebar(
+    sidebarMenu(
+      # menuItem("Intro", tabName = "intro", icon = icon("dashboard")),
+      menuItem("Map", tabName = "map", icon = icon("dashboard")),
+      menuItem("Statistic", tabName = "statistic", icon = icon("th"))
+    )
+  ),
+  dashboardBody(
+    tags$head(
+      tags$link(rel = "stylesheet", type = "text/css", href = "Crime_Map.css")
+    ),
+    
+    tabItems(
+      
+      # 
+      # tabItem(tabName = "intro",
+      #         
+      #         fluidRow(
+      #           tags$div(class = "Intro-Search-Bar",
+      #                    h2(class = "Intro-Header" ,"Welcome to New York")
+      #                    
+      # 
+      #                    )
+      #           
+      #         )
+      # ),
+      # 
+      
+      tabItem(tabName = "map",
+              fluidRow(
+                useShinyjs(),
+                column(width = 8,
+                       
+                       
+                       box(
+                         box(class="Crime-Time", width = 4, sliderInput("Crime_Time", "Crime Time: ", min = Min_Time, max = Max_Time, value =  c(Min_Time, Max_Time), timeFormat = "%H:%M:%S", step = 1, width = ) ),
+                         box(width = 4, pickerInput("Crime_Tyle", "Crime Type:", Total_Type, multiple = T) ),
+                         box(width = 4, sliderInput("Crime_Distance", "Crime Distance: ", min = 0, max = 5, value = 2.5, step = 0.1) ),
+                         width = 12,
+                         status = "primary",
+                         leafletOutput("Map", height = 500)
+                       )
+                ),
+                column(width = 4,
+                       box(
+                         title = "Search: ", width = NULL, status = "warning",
+                         searchInput(inputId = "Search_Address", 
+                                     placeholder = "Enter Address", 
+                                     btnSearch = icon("search"))
+                       ),
+                       
+                       box(
+                         title = "Category", width = NULL, status = "warning",
+                         prettyCheckbox("Hotels", "Hotels", value = FALSE, status = "warning",
+                                        shape = "square", animation = "smooth", inline = TRUE),
+                         prettyCheckbox("Restaurant", "Restaurant", value = FALSE, status = "warning",
+                                        shape = "square", animation = "smooth", inline = TRUE),
+                         prettyCheckbox("Entertainment", "Entertainment", value = FALSE, status = "warning",
+                                        shape = "square", animation = "smooth", inline = TRUE)
+                       ),
+                       
+                       tabBox(
+                         side = "left", width = NULL,
+                         selected = "Hotels",
+                         tabPanel("Hotels", 
+                                sliderInput("Hotels_Crime_Distance", "Crime Distance: ", min = 0, max = 5, value = 1, step = 0.1),
+                                sliderInput("Hotels_Rating", "Hotels Rating: ", min = 0, max = 5, value = c(3, 5), step = 0.1),
+                                pickerInput("Hotels_Price_Level", "Hotels Price Level:", price_level, multiple = TRUE)
+                                  
+                         ),
+                         tabPanel("Restaruant", 
+                                  sliderInput("Restaurant_Crime_Distance", "Crime Distance: ", min = 0, max = 5, value = 1, step = 0.1),
+                                  sliderInput("Restaurant_Rating", "Restaurant Rating: ", min = 0, max = 5, value = c(3, 5), step = 0.1),
+                                  pickerInput("Restaurant_Price_Level", "Restaurant Price Level:", price_level, multiple = TRUE)
+                        ),
+                         tabPanel("Entertainment", 
+                                  sliderInput("Entertainment_Crime_Distance", "Crime Distance: ", min = 0, max = 5, value = 1, step = 0.1),
+                                  sliderInput("Entertainment_Rating", "Entertainment Rating: ", min = 0, max = 5, value = c(3, 5), step = 0.1),
+                                  pickerInput("Entertainment_Price_Level", "Entertainment Price Level:", price_level, multiple = TRUE)
+                                  
+                                  
+                        )
+                    )
+
+                )
+              )
+      ),
+      
+      
+      tabItem(tabName = "statistic",
+              h2("statistic")
+      )
+    )
+  )
 )
+
+
+
+# ui <- navbarPage(actionButton("Title", "New Yrok"),
+#                  
+#                  tabPanel("hello"),
+#                  
+#                  
+#                  tabPanel("Map", 
+#                           fluidPage(
+#                             
+#                             useShinyjs(),
+#                             
+#                             includeCSS("Crime_Map.css"),
+#                             
+#                             titlePanel("Geo Info for Crime Data"),
+#                             
+#                             checkboxInput("Restaurant", "Restaurant", value = FALSE, width = NULL),
+#                             
+#                             
+#                             sliderInput("distance", "distance: ", min = 0, max = 10, value = 5, step = 0.1),
+#                             
+#                             div(id="restaurantinput", 
+#                                             
+#                                             sliderInput("restaurant_distance", "restaurant_distance: ", min = 0, max = 5, value = 1, step = 0.1),
+#                                             
+#                                             sliderInput("restaurant_rating", "restaurant_rating: ", min = 0, max = 5, value = c(3,5), step = 0.5),
+#                                             
+#                                             selectInput("restaurant_price_level", "restaurant_price_level: ", price_level, multiple = T, width = 1000)
+#                             ),
+#                             
+#                             
+#                             sliderInput("time", "time: ", min = Min_Time, max = Max_Time, value =  c(Min_Time, Max_Time), timeFormat = "%H:%M:%S", step = 1),
+#                             
+#                             selectInput("type", "Type:", Total_Type, multiple = T, width = 1000),
+#                             
+#                             actionButton("button", "An action button"),
+#                             
+#                             textInput("Search", "Search:", value = "", width = NULL, placeholder = NULL),
+#                             
+#                             
+#                             textOutput("Restaurant_Output"),
+#                             
+#                             leafletOutput("Map")
+#                             
+#                             
+#                             
+#                           )
+#                           
+#                           
+#                           ),
+#        
+#                  
+#                  tabPanel("Other")
+#    
+#   
+#    
+#    
+#    
+# )
 
 
 ###################### UI ##############################
@@ -430,216 +537,216 @@ server <- function(input, output) {
 
   Position <- reactiveValues(Target_Lat = 40.7128,  Target_Lon = -74.0060)
   
-  
-######################## Start of Restaurants  ##################################################
-  
-############################## Restaurant ##############################
-  observeEvent(input$Restaurant,{
-    
-    if(input$Restaurant == TRUE){
-      
-      shinyjs::show( id = "restaurantinput")
-      
-      Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$restaurant_distance, input$restaurant_rating, input$restaurant_price_level, Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Selected_Restaurant$Lon, lat = Selected_Restaurant$Lat, popup = htmlEscape(Current_Position_Content(Selected_Restaurant$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
-      
-      
-    }
-    
-    else{
-      
-      shinyjs::hide(id = "restaurantinput")
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-      
-    }
-    
-    
-  }, ignoreNULL = FALSE)
-
-############################## Restaurant ############################## 
-  
-  
-############################## Restaurant Crime distance ############################## 
-  
-  observeEvent(input$restaurant_distance,{
-    
-    if(input$Restaurant == TRUE){
-      
-      Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$restaurant_distance, input$restaurant_rating, input$restaurant_price_level, Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Selected_Restaurant$Lon, lat = Selected_Restaurant$Lat, popup = htmlEscape(Current_Position_Content(Selected_Restaurant$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
-      
-      
-    }
-    
-    else{
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-      
-    }
-    
-    
-  }, ignoreNULL = FALSE)
-
-############################## Restaurant Crime distance ############################## 
-
-
-############################## Restaurant Rating ############################## 
-  
-  observeEvent(input$restaurant_rating,{
-    
-    if(input$Restaurant == TRUE){
-      
-      Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$restaurant_distance, input$restaurant_rating, input$restaurant_price_level, Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Selected_Restaurant$Lon, lat = Selected_Restaurant$Lat, popup = htmlEscape(Current_Position_Content(Selected_Restaurant$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
-      
-      
-    }
-    
-    else{
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-      
-    }
-    
-    
-  }, ignoreNULL = FALSE)
-  
-
-############################## Restaurant Rating ############################## 
-  
-  
-
-############################## Restaurant Price Leve ############################## 
-  
-  observeEvent(input$restaurant_price_level,{
-    
-    
-    if(input$Restaurant == TRUE){
-      
-      Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$restaurant_distance, input$restaurant_rating, input$restaurant_price_level, Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Selected_Restaurant$Lon, lat = Selected_Restaurant$Lat, popup = htmlEscape(Current_Position_Content(Selected_Restaurant$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
-      
-      
-    }
-    
-    else{
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-      
-    }
-    
-    
-  }, ignoreNULL = FALSE)
-  
-  
-  ############################## Restaurant Price Level ############################## 
-  
-  
-######################## End of Restaurants  ##################################################
-  
-  
-
-  
-######################## Start of Observe Crime  ##################################################
-  
-  
-  # Type
-  observeEvent(input$type,{
-    
-    
-    Result_Crime_Data <- Selected_Crime(Position, input$time, input$type, input$distance, Crime_Geo_Data, Crime_Data)
-   
-     leafletProxy("Map") %>% 
-      removeMarkerCluster(layerId = "Crime") %>% 
-      addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-      removeMarker(layerId = "Current_Address") %>%
-      addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
-    
-    
-  }, ignoreNULL = FALSE)  
-  
-  
-  # Time
-  observeEvent(input$time,{
-    
-    Result_Crime_Data <- Selected_Crime(Position, input$time, input$type, input$distance, Crime_Geo_Data, Crime_Data)
-    
-    leafletProxy("Map") %>% 
-      removeMarkerCluster(layerId = "Crime") %>% 
-      addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-      removeMarker(layerId = "Current_Address") %>%
-      addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
-    
-    
-    
-  }, ignoreNULL = FALSE)
-  
-  
-  
-  # Distance
-  observeEvent(input$distance,{
-    
-    Result_Crime_Data <- Selected_Crime(Position, input$time, input$type, input$distance, Crime_Geo_Data, Crime_Data)
-    
-    leafletProxy("Map") %>% 
-      removeMarkerCluster(layerId = "Crime") %>% 
-      addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-      removeMarker(layerId = "Current_Address") %>%
-      addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
-    
-    
-    
-    
-  }, ignoreNULL = FALSE)
-  
-######################## End of Observe Crime  ##################################################
-
-  
-  
-################################### OUTPUT ################################### 
-  
-  observeEvent(input$button,{
-    
-    if(input$button >= 1){
-      
-      Geo_Info <- Get_Geo_Info(input$Search)
-      
-      if(!is.null(Geo_Info) && !is.null(Geo_Info["lat"]) && !is.null(Geo_Info["lon"]) ){
-        
-        Position$Target_Lat <- Geo_Info["lat"]
-        Position$Target_Lon <- Geo_Info["lon"]
-        
-        Result_Crime_Data <- Selected_Crime(Position, input$time, input$type, input$distance, Crime_Geo_Data, Crime_Data)
-        
-        leafletProxy("Map") %>% 
-          removeMarkerCluster(layerId = "Crime") %>% 
-          addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-          removeMarker(layerId = "Current_Address") %>%
-          addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
-        
-        
-      }
-      
-      else{
-        
-        showModal(modalDialog(
-          title = "Address Error!",
-          "There is no such address, please check the address again and input again! ",
-          easyClose = TRUE
-        ))
-        
-      }
-      
-
-    }
-    
-    
-  }, ignoreNULL = FALSE)  
+#   
+# ######################## Start of Restaurants  ##################################################
+#   
+# ############################## Restaurant ##############################
+#   observeEvent(input$Restaurant,{
+#     
+#     if(input$Restaurant == TRUE){
+#       
+#       shinyjs::show( id = "restaurantinput")
+#       
+#       Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$restaurant_distance, input$restaurant_rating, input$restaurant_price_level, Crime_Geo_Data)
+#       
+#       leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Selected_Restaurant$Lon, lat = Selected_Restaurant$Lat, popup = htmlEscape(Current_Position_Content(Selected_Restaurant$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+#       
+#       
+#     }
+#     
+#     else{
+#       
+#       shinyjs::hide(id = "restaurantinput")
+#       
+#       leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+#       
+#     }
+#     
+#     
+#   }, ignoreNULL = FALSE)
+# 
+# ############################## Restaurant ############################## 
+#   
+#   
+# ############################## Restaurant Crime distance ############################## 
+#   
+#   observeEvent(input$restaurant_distance,{
+#     
+#     if(input$Restaurant == TRUE){
+#       
+#       Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$restaurant_distance, input$restaurant_rating, input$restaurant_price_level, Crime_Geo_Data)
+#       
+#       leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Selected_Restaurant$Lon, lat = Selected_Restaurant$Lat, popup = htmlEscape(Current_Position_Content(Selected_Restaurant$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+#       
+#       
+#     }
+#     
+#     else{
+#       
+#       leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+#       
+#     }
+#     
+#     
+#   }, ignoreNULL = FALSE)
+# 
+# ############################## Restaurant Crime distance ############################## 
+# 
+# 
+# ############################## Restaurant Rating ############################## 
+#   
+#   observeEvent(input$restaurant_rating,{
+#     
+#     if(input$Restaurant == TRUE){
+#       
+#       Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$restaurant_distance, input$restaurant_rating, input$restaurant_price_level, Crime_Geo_Data)
+#       
+#       leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Selected_Restaurant$Lon, lat = Selected_Restaurant$Lat, popup = htmlEscape(Current_Position_Content(Selected_Restaurant$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+#       
+#       
+#     }
+#     
+#     else{
+#       
+#       leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+#       
+#     }
+#     
+#     
+#   }, ignoreNULL = FALSE)
+#   
+# 
+# ############################## Restaurant Rating ############################## 
+#   
+#   
+# 
+# ############################## Restaurant Price Leve ############################## 
+#   
+#   observeEvent(input$restaurant_price_level,{
+#     
+#     
+#     if(input$Restaurant == TRUE){
+#       
+#       Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$restaurant_distance, input$restaurant_rating, input$restaurant_price_level, Crime_Geo_Data)
+#       
+#       leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(lng = Selected_Restaurant$Lon, lat = Selected_Restaurant$Lat, popup = htmlEscape(Current_Position_Content(Selected_Restaurant$Crime_Count)), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+#       
+#       
+#     }
+#     
+#     else{
+#       
+#       leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+#       
+#     }
+#     
+#     
+#   }, ignoreNULL = FALSE)
+#   
+#   
+#   ############################## Restaurant Price Level ############################## 
+#   
+#   
+# ######################## End of Restaurants  ##################################################
+#   
+#   
+# 
+#   
+# ######################## Start of Observe Crime  ##################################################
+#   
+#   
+#   # Type
+#   observeEvent(input$type,{
+#     
+#     
+#     Result_Crime_Data <- Selected_Crime(Position, input$time, input$type, input$distance, Crime_Geo_Data, Crime_Data)
+#    
+#      leafletProxy("Map") %>% 
+#       removeMarkerCluster(layerId = "Crime") %>% 
+#       addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
+#       removeMarker(layerId = "Current_Address") %>%
+#       addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
+#     
+#     
+#   }, ignoreNULL = FALSE)  
+#   
+#   
+#   # Time
+#   observeEvent(input$time,{
+#     
+#     Result_Crime_Data <- Selected_Crime(Position, input$time, input$type, input$distance, Crime_Geo_Data, Crime_Data)
+#     
+#     leafletProxy("Map") %>% 
+#       removeMarkerCluster(layerId = "Crime") %>% 
+#       addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
+#       removeMarker(layerId = "Current_Address") %>%
+#       addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
+#     
+#     
+#     
+#   }, ignoreNULL = FALSE)
+#   
+#   
+#   
+#   # Distance
+#   observeEvent(input$distance,{
+#     
+#     Result_Crime_Data <- Selected_Crime(Position, input$time, input$type, input$distance, Crime_Geo_Data, Crime_Data)
+#     
+#     leafletProxy("Map") %>% 
+#       removeMarkerCluster(layerId = "Crime") %>% 
+#       addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
+#       removeMarker(layerId = "Current_Address") %>%
+#       addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
+#     
+#     
+#     
+#     
+#   }, ignoreNULL = FALSE)
+#   
+# ######################## End of Observe Crime  ##################################################
+# 
+#   
+#   
+# ################################### OUTPUT ################################### 
+#   
+#   observeEvent(input$button,{
+#     
+#     if(input$button >= 1){
+#       
+#       Geo_Info <- Get_Geo_Info(input$Search)
+#       
+#       if(!is.null(Geo_Info) && !is.null(Geo_Info["lat"]) && !is.null(Geo_Info["lon"]) ){
+#         
+#         Position$Target_Lat <- Geo_Info["lat"]
+#         Position$Target_Lon <- Geo_Info["lon"]
+#         
+#         Result_Crime_Data <- Selected_Crime(Position, input$time, input$type, input$distance, Crime_Geo_Data, Crime_Data)
+#         
+#         leafletProxy("Map") %>% 
+#           removeMarkerCluster(layerId = "Crime") %>% 
+#           addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
+#           removeMarker(layerId = "Current_Address") %>%
+#           addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", popup = htmlEscape(Current_Position_Content(nrow(Result_Crime_Data))))
+#         
+#         
+#       }
+#       
+#       else{
+#         
+#         showModal(modalDialog(
+#           title = "Address Error!",
+#           "There is no such address, please check the address again and input again! ",
+#           easyClose = TRUE
+#         ))
+#         
+#       }
+#       
+# 
+#     }
+#     
+#     
+#   }, ignoreNULL = FALSE)  
   
   
   output$Map <- renderLeaflet({

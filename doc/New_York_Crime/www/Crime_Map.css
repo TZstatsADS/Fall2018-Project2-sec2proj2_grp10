@@ -1,0 +1,54 @@
+
+.Intro-Search-Bar{
+  text-align: center;
+  width: 100%;
+  height: 900px;
+  background-image:url("https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1538791712297&di=698786569625f8444362755fa5f06150&imgtype=0&src=http%3A%2F%2Fs.joytrav.com%2Fimages%2F14930036968082014901777899571013.jpg");
+
+
+}
+
+.content{
+  height: 650px;
+  background-image:url("https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1538791712297&di=698786569625f8444362755fa5f06150&imgtype=0&src=http%3A%2F%2Fs.joytrav.com%2Fimages%2F14930036968082014901777899571013.jpg");
+}
+
+.box-primary{
+  background-color: rgba(255,255,255,1);
+}
+
+.box-primary .box-body .col-sm-4{
+  height: 100px;
+}
+
+.box{
+  border-top: none; 
+  box-shadow: none;
+}
+
+.irs-single, .irs-bar-edge, .irs-bar, .irs-from, .irs-to, .irs-single{
+  background: #F39C12;
+}
+
+.irs-bar{
+  border-top: 1px solid #F39C12;
+  border-bottom: 1px solid #F39C12;
+  background :#F39C12;
+}
+
+.irs-bar-edge{
+  border: 1px solid #F39C12;
+}
+
+.irs-grid-pol{
+  background: #F39C12;
+}
+
+.irs-min, .irs-max{
+  color: white;
+  background: #F39C12;
+}
+
+.nav-tabs-custom .nav-tabs li.active{
+  border-top-color: #F39C12;
+}
