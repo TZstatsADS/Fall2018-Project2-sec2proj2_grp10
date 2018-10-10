@@ -116,5 +116,7 @@ body{
   margin: auto;
 }
 
-
+.leaflet-popup-content{
+  line-height: 2;
+}
 
