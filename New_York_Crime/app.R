@@ -20,14 +20,14 @@ library("htmlwidgets")
 library("htmltools")
 library("shinyjs")
 library("shinydashboard")
-library(ggplot2)
-library(reshape2)
+library("ggplot2")
+library("reshape2")
 
 
 
 
 ###########################  Start from here is crime value for map ########################### 
-Crime_Data <- read.csv("../../data/NYC_Crime_Data/NYPD_Complaint_Data_Current_YTD.csv")
+Crime_Data <- read.csv("../data/NYC_Crime_Data/NYPD_Complaint_Data_Current_YTD.csv")
 
 crime <- Crime_Data
 
@@ -552,7 +552,7 @@ Crime_Icon <- makeIcon(
 
 Total_Type <- c()
 
-Type_Selection <- unique(Crime_Data$PD_DESC)
+Type_Selection <- unique(Crime_Data$LAW_CAT_CD)
 
 for (type in Type_Selection) {
   
@@ -585,10 +585,10 @@ ui <- dashboardPage(
       menuItem("Map", tabName = "map", icon = icon("fal fa-map")),
       menuItem("Crime Statistic", icon = icon("th"), 
                sidebarMenu(id = "Statistic_Sub_Side_Bar",
-                           menuItem("Crime Types", tabName = "Crime_Types", icon = icon("fal fa-map")),
-                           menuItem("Victim Sex", tabName = "Victim_Sex", icon = icon("fal fa-map")),
-                           menuItem("Age Group and Race", tabName = "Crime_Age_Group_Race", icon = icon("fal fa-map")),
-                           menuItem("Crime During Day", tabName = "Crime_During_Day", icon = icon("fal fa-map"))
+                           menuItem("Crime Types", tabName = "Crime_Types" ),
+                           menuItem("Victim Sex", tabName = "Victim_Sex"),
+                           menuItem("Age Group and Race", tabName = "Crime_Age_Group_Race"),
+                           menuItem("Crime During Day", tabName = "Crime_During_Day")
                            )
               )
     )
@@ -2003,8 +2003,6 @@ server <- function(input, output, session) {
   })
 
 ################################### Statistics Crime_Count_Race ################
-  
-  
   
 
 }
