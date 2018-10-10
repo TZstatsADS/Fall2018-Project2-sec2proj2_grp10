@@ -27,7 +27,7 @@ library("reshape2")
 
 
 ###########################  Start from here is crime value for map ########################### 
-Crime_Data <- read.csv("../data/NYC_Crime_Data/NYC_crime.csv")
+Crime_Data <- read.csv("../data/NYC_Crime_Data/NYPD_Complaint_Data_Current_YTD.csv")
 
 crime <- Crime_Data
 
@@ -831,33 +831,48 @@ ui <- dashboardPage(
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
 
-  Position <- reactiveValues(Target_Lat = 40.7128,  Target_Lon = -74.0060)
+  Position <- reactiveValues(Target_Lat = 40.7128,  Target_Lon = -74.0060, Search_Flag = TRUE)
   
 
 ######################## Start of Restaurants  ##################################################
 
 ############################## Restaurant ##############################
   observeEvent(input$Restaurant,{
-
-    if(input$Restaurant == TRUE){
-
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+    
+    if(Position$Search_Flag == FALSE){
       
-      Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
-      Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Restaurant_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
-
-
     }
-
+    
     else{
-
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-
+      if(input$Restaurant == TRUE){
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        
+        Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Restaurant_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+        
+        
+      }
+      
+      else{
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+        
+      }
+      
+      
     }
 
+   
 
   }, ignoreNULL = FALSE)
 
@@ -868,24 +883,39 @@ server <- function(input, output, session) {
 ############################## Restaurant Crime distance ##############################
 
   observeEvent(input$Restaurant_Crime_Distance,{
-
-    if(input$Restaurant == TRUE){
-
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+    
+    if(Position$Search_Flag == FALSE){
       
-      Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
-      Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Restaurant_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
-      
-
     }
-
+    
     else{
-
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-
+      
+      if(input$Restaurant == TRUE){
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        
+        Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Restaurant_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+        
+        
+      }
+      
+      else{
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+        
+      }
+      
+      
     }
 
 
@@ -897,23 +927,38 @@ server <- function(input, output, session) {
 ############################## Restaurant Rating ##############################
 
   observeEvent(input$Restaurant_Rating,{
-
-    if(input$Restaurant == TRUE){
-
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+    
+    if(Position$Search_Flag == FALSE){
       
-      Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-      
-      Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Restaurant_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
-
+    
     else{
-
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-
+      
+      if(input$Restaurant == TRUE){
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        
+        Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Restaurant_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+        
+      }
+      
+      else{
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+        
+      }
+      
+      
     }
 
 
@@ -927,25 +972,42 @@ server <- function(input, output, session) {
 ############################## Restaurant Price Leve ##############################
 
   observeEvent(input$Restaurant_Price_Level,{
-
-
-    if(input$Restaurant == TRUE){
-
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+    
+    
+    if(Position$Search_Flag == FALSE){
       
-      Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-      
-      Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Restaurant_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
-
+    
     else{
-
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-
+      
+      
+      if(input$Restaurant == TRUE){
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        
+        Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Restaurant_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+        
+      }
+      
+      else{
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+        
+      }
+      
+      
     }
+
 
 
   }, ignoreNULL = FALSE)
@@ -965,29 +1027,45 @@ server <- function(input, output, session) {
   ############################## Hotels ##############################
   observeEvent(input$Hotels,{
     
-    if(input$Hotels == TRUE){
+    if(Position$Search_Flag == FALSE){
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      print(input$Crime_Type)
-      
-      print(Result_Crime_Data)
-      
-      Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-      
-      Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
-      
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
     
     else{
       
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+      if(input$Hotels == TRUE){
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        print(input$Crime_Type)
+        
+        print(Result_Crime_Data)
+        
+        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        
+        Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
+        
+        
+      }
+      
+      else{
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+        
+      }
+      
       
     }
     
+  
     
   }, ignoreNULL = FALSE)
   
@@ -999,24 +1077,38 @@ server <- function(input, output, session) {
   
   observeEvent(input$Hotels_Crime_Distance,{
     
-    if(input$Hotels == TRUE){
+    if(Position$Search_Flag == FALSE){
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-      
-      Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
-      
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
     
     else{
+      if(input$Hotels == TRUE){
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        
+        Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
+        
+        
+      }
       
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+      else{
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+        
+      }
       
     }
+    
     
     
   }, ignoreNULL = FALSE)
@@ -1028,24 +1120,40 @@ server <- function(input, output, session) {
   
   observeEvent(input$Hotels_Rating,{
     
-    if(input$Hotels == TRUE){
+    if(Position$Search_Flag == FALSE){
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-      
-      Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
-      
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
     
     else{
       
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+      if(input$Hotels == TRUE){
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        
+        Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
+        
+        
+      }
+      
+      else{
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+        
+      }
+      
       
     }
+    
     
     
   }, ignoreNULL = FALSE)
@@ -1059,26 +1167,42 @@ server <- function(input, output, session) {
   
   observeEvent(input$Hotels_Price_Level,{
     
-    
-    if(input$Hotels == TRUE){
+    if(Position$Search_Flag == FALSE){
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-      
-      Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
-      
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
     
     else{
       
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+      
+      if(input$Hotels == TRUE){
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        
+        Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
+        
+        
+      }
+      
+      else{
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+        
+      }
+      
       
     }
     
+
     
   }, ignoreNULL = FALSE)
   
@@ -1097,25 +1221,43 @@ server <- function(input, output, session) {
   ############################## Entertainment ##############################
   observeEvent(input$Entertainment,{
     
-    if(input$Entertainment == TRUE){
+    if(Position$Search_Flag == FALSE){
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-      
-      Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
-      
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
     
     else{
       
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+      
+      
+      if(input$Entertainment == TRUE){
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        
+        Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
+        
+        
+      }
+      
+      else{
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+        
+      }
+      
       
     }
     
+
     
   }, ignoreNULL = FALSE)
   
@@ -1127,25 +1269,42 @@ server <- function(input, output, session) {
   
   observeEvent(input$Entertainment_Crime_Distance,{
     
-    if(input$Entertainment == TRUE){
+    if(Position$Search_Flag == FALSE){
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-      
-      Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
-      
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
     
     else{
       
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+      if(input$Entertainment == TRUE){
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        
+        Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
+        
+        
+      }
+      
+      else{
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+        
+      }
+      
       
     }
     
+    
+   
     
   }, ignoreNULL = FALSE)
   
@@ -1156,26 +1315,43 @@ server <- function(input, output, session) {
   
   observeEvent(input$Entertainment_Rating,{
     
-    if(input$Entertainment == TRUE){
+    if(Position$Search_Flag == FALSE){
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-      
-      Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
-      
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
     
     else{
       
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+      
+      if(input$Entertainment == TRUE){
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        
+        Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
+        
+        
+      }
+      
+      else{
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+        
+      }
+      
+      
       
     }
     
-    
+  
   }, ignoreNULL = FALSE)
   
   
@@ -1187,26 +1363,42 @@ server <- function(input, output, session) {
   
   observeEvent(input$Entertainment_Price_Level,{
     
-    
-    if(input$Entertainment == TRUE){
+    if(Position$Search_Flag == FALSE){
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-      
-      Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
-      
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url , Rating, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
-      
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
     
     else{
       
-      leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+      
+      if(input$Entertainment == TRUE){
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        
+        Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url , Rating, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
+        
+        
+      }
+      
+      else{
+        
+        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+        
+      }
+      
       
     }
     
+ 
     
   }, ignoreNULL = FALSE)
   
@@ -1226,160 +1418,177 @@ server <- function(input, output, session) {
 ########################### Crime Type ########################
   observeEvent(input$Crime_Type,{
 
-    if(input$Crime){
+    if(Position$Search_Flag == FALSE){
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      leafletProxy("Map") %>%
-        removeMarkerCluster(layerId = "Crime") %>%
-        addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, icon = Crime_Icon, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
-      
-      # Restaurant
-      if(input$Restaurant == TRUE){
-        
-        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-        
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-        
-        Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Hotels_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
-        
-        
-      }
-      
-      else{
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-        
-      }
-      
-      
-      
-      # Hotels
-      if(input$Hotels == TRUE){
-        
-        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-        
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-        
-        Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
-        
-        
-      }
-      
-      else{
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
-        
-      }
-      
-      
-      # Entertainment
-      if(input$Entertainment == TRUE){
-        
-        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-        
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-        
-        Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
-        
-        
-      }
-      
-      else{
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
-        
-      }
-      
-      
-      
-      
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
     
     else{
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
       
-      leafletProxy("Map") %>%
-        removeMarkerCluster(layerId = "Crime") %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
-      
-      # Restaurant
-      if(input$Restaurant == TRUE){
+      if(input$Crime){
         
         Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
         
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        leafletProxy("Map") %>%
+          removeMarkerCluster(layerId = "Crime") %>%
+          addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, icon = Crime_Icon, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
+          removeMarker(layerId = "Current_Address") %>%
+          addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
         
-        Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Hotels_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
+        # Restaurant
+        if(input$Restaurant == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Hotels_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+          
+          
+        }
         
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+          
+        }
+        
+        
+        
+        # Hotels
+        if(input$Hotels == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+          
+        }
+        
+        
+        # Entertainment
+        if(input$Entertainment == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+          
+        }
+        
+        
+        
         
         
       }
       
       else{
         
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-        
-      }
-      
-      
-      
-      # Hotels
-      if(input$Hotels == TRUE){
-        
         Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
         
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        leafletProxy("Map") %>%
+          removeMarkerCluster(layerId = "Crime") %>%
+          removeMarker(layerId = "Current_Address") %>%
+          addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
         
-        Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
+        # Restaurant
+        if(input$Restaurant == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Hotels_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+          
+          
+        }
         
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
-        
-        
-      }
-      
-      else{
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
-        
-      }
-      
-      
-      # Entertainment
-      if(input$Entertainment == TRUE){
-        
-        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-        
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-        
-        Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+          
+        }
         
         
-      }
-      
-      else{
         
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+        # Hotels
+        if(input$Hotels == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+          
+        }
+        
+        
+        # Entertainment
+        if(input$Entertainment == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+          
+        }
+        
         
       }
       
       
     }
     
+
 
   }, ignoreNULL = FALSE)
 
@@ -1388,153 +1597,167 @@ server <- function(input, output, session) {
   
 ########################### Crime Time ########################
   observeEvent(input$Crime_Time,{
-
-    if(input$Crime){
+    
+    if(Position$Search_Flag == FALSE){
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      leafletProxy("Map") %>%
-        removeMarkerCluster(layerId = "Crime") %>%
-        addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, icon = Crime_Icon, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address",icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
-      
-      # Restaurant
-      if(input$Restaurant == TRUE){
-        
-        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-        
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-        
-        Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Hotels_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
-        
-        
-      }
-      
-      else{
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-        
-      }
-      
-      
-      # Hotels
-      if(input$Hotels == TRUE){
-        
-        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-        
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-        
-        Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
-        
-        
-      }
-      
-      else{
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
-        
-      }
-      
-      # Entertainment
-      if(input$Entertainment == TRUE){
-        
-        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-        
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-        
-        Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
-        
-        
-      }
-      
-      else{
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
-        
-      }
-      
-      
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
     
     else{
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      leafletProxy("Map") %>%
-        removeMarkerCluster(layerId = "Crime") %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address",icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
-      
-      
-      # Restaurant
-      if(input$Restaurant == TRUE){
+      if(input$Crime){
         
         Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
         
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        leafletProxy("Map") %>%
+          removeMarkerCluster(layerId = "Crime") %>%
+          addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, icon = Crime_Icon, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
+          removeMarker(layerId = "Current_Address") %>%
+          addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address",icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
         
-        Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Hotels_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
+        # Restaurant
+        if(input$Restaurant == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Hotels_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+          
+          
+        }
         
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+          
+        }
+        
+        
+        # Hotels
+        if(input$Hotels == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+          
+        }
+        
+        # Entertainment
+        if(input$Entertainment == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+          
+        }
+        
         
         
       }
       
       else{
         
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-        
-      }
-      
-      
-      # Hotels
-      if(input$Hotels == TRUE){
-        
         Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
         
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        leafletProxy("Map") %>%
+          removeMarkerCluster(layerId = "Crime") %>%
+          removeMarker(layerId = "Current_Address") %>%
+          addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address",icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
         
-        Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
         
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
+        # Restaurant
+        if(input$Restaurant == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Hotels_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+          
+        }
+        
+        
+        # Hotels
+        if(input$Hotels == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+          
+        }
+        
+        # Entertainment
+        if(input$Entertainment == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+          
+        }
         
         
       }
-      
-      else{
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
-        
-      }
-      
-      # Entertainment
-      if(input$Entertainment == TRUE){
-        
-        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-        
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-        
-        Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
-        
-        
-      }
-      
-      else{
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
-        
-      }
-      
       
     }
 
@@ -1548,32 +1771,49 @@ server <- function(input, output, session) {
   
   observeEvent(input$Crime,{
     
-    
-    if(input$Crime){
+    if(Position$Search_Flag == FALSE){
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      leafletProxy("Map") %>%
-        removeMarkerCluster(layerId = "Crime") %>%
-        addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, icon = Crime_Icon, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
-      
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
     
     else{
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
       
-      leafletProxy("Map") %>%
-        removeMarkerCluster(layerId = "Crime") %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
+      if(input$Crime){
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        leafletProxy("Map") %>%
+          removeMarkerCluster(layerId = "Crime") %>%
+          addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, icon = Crime_Icon, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
+          removeMarker(layerId = "Current_Address") %>%
+          addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
+        
+        
+      }
+      
+      else{
+        
+        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+        
+        leafletProxy("Map") %>%
+          removeMarkerCluster(layerId = "Crime") %>%
+          removeMarker(layerId = "Current_Address") %>%
+          addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
+        
+      }
+      
+      
+      
       
     }
-
     
+
   }, ignoreNULL = FALSE)
   
 ########################### Show Crime CheckBox ########################
@@ -1583,156 +1823,170 @@ server <- function(input, output, session) {
 ########################### Crime Distance ########################
   observeEvent(input$Crime_Distance,{
     
-    
-    if(input$Crime){
+    if(Position$Search_Flag == FALSE){
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      leafletProxy("Map") %>%
-        removeMarkerCluster(layerId = "Crime") %>%
-        addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, icon = Crime_Icon, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
-      
-      
-      # Restaurant
-      if(input$Restaurant == TRUE){
-        
-        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-        
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-        
-        Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Hotels_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
-        
-        
-      }
-      
-      else{
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-        
-      }
-      
-      
-      # Hotels
-      if(input$Hotels == TRUE){
-        
-        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-        
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-        
-        Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
-        
-        
-      }
-      
-      else{
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
-        
-      }
-      
-      # Entertainment
-      if(input$Entertainment == TRUE){
-        
-        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-        
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-        
-        Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
-        
-        
-      }
-      
-      else{
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
-        
-      }
-      
+      showModal(modalDialog(
+        title = "Search Address Error!",
+        "Please Search an address first! ",
+        easyClose = TRUE
+      ))
       
     }
     
     else{
       
-      Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-      
-      leafletProxy("Map") %>%
-        removeMarkerCluster(layerId = "Crime") %>%
-        removeMarker(layerId = "Current_Address") %>%
-        addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
-      
-      
-      # Restaurant
-      if(input$Restaurant == TRUE){
+      if(input$Crime){
         
         Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
         
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+        leafletProxy("Map") %>%
+          removeMarkerCluster(layerId = "Crime") %>%
+          addMarkers(lng = Result_Crime_Data$Crime_Longitude, lat = Result_Crime_Data$Crime_Latitude, icon = Crime_Icon, clusterId = "Crime", clusterOptions = markerClusterOptions() ) %>%
+          removeMarker(layerId = "Current_Address") %>%
+          addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
         
-        Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Hotels_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
         
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+        # Restaurant
+        if(input$Restaurant == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Hotels_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+          
+        }
+        
+        
+        # Hotels
+        if(input$Hotels == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+          
+        }
+        
+        # Entertainment
+        if(input$Entertainment == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+          
+        }
         
         
       }
       
       else{
         
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
-        
-      }
-      
-      
-      # Hotels
-      if(input$Hotels == TRUE){
-        
         Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
         
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-        
-        Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
-        
-        
-      }
-      
-      else{
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
-        
-      }
-      
-      # Entertainment
-      if(input$Entertainment == TRUE){
-        
-        Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
-        
-        Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
-        
-        Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
-        
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
+        leafletProxy("Map") %>%
+          removeMarkerCluster(layerId = "Crime") %>%
+          removeMarker(layerId = "Current_Address") %>%
+          addMarkers(lng = Position$Target_Lon, lat = Position$Target_Lat, layerId = "Current_Address", icon = Current_Position_Icon_Maker(nrow(Result_Crime_Data)) , popup = Current_Position_Pop_Up_Maker(nrow(Result_Crime_Data)))
         
         
-      }
-      
-      else{
+        # Restaurant
+        if(input$Restaurant == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Restaurant <- Selected_Business(Position, "Restaurant", input$Map_zoom, input$Hotels_Crime_Distance, input$Restaurant_Rating, input$Restaurant_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")  %>% addMarkers(data = Selected_Restaurant, lng = ~Lon, lat = ~Lat, icon = ~Restaurant_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Restaurant", clusterOptions = markerClusterOptions() )
+          
+          
+        }
         
-        leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Restaurant")
+          
+        }
+        
+        
+        # Hotels
+        if(input$Hotels == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Hotels <- Selected_Business(Position, "Hotels", input$Map_zoom, input$Hotels_Crime_Distance, input$Hotels_Rating, input$Hotels_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")  %>% addMarkers(data = Selected_Hotels, lng = ~Lon, lat = ~Lat, icon = ~Hotel_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Hotels", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Hotels")
+          
+        }
+        
+        # Entertainment
+        if(input$Entertainment == TRUE){
+          
+          Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
+          
+          Selected_Crime_Geo_Data <- Result_Crime_Data[, c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")]
+          
+          Selected_Entertainment <- Selected_Business(Position, "Entertainment", input$Map_zoom, input$Entertainment_Crime_Distance, input$Entertainment_Rating, input$Entertainment_Price_Level, Selected_Crime_Geo_Data)
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")  %>% addMarkers(data = Selected_Entertainment,  lng = ~Lon, lat = ~Lat, icon = ~Entertainment_Icon_Maker(Crime_Count), popup = ~Business_Pop_Up_Maker(Name, Image_Url, Rating, Rating_Url, Price_Level, Price_Url, Address, City, State, Zip_Code, Distance, Crime_Count), clusterId = "Entertainment", clusterOptions = markerClusterOptions() )
+          
+          
+        }
+        
+        else{
+          
+          leafletProxy("Map") %>% removeMarkerCluster(layerId = "Entertainment")
+          
+        }
+        
         
       }
       
       
     }
-    
+  
 
   }, ignoreNULL = FALSE)
 
@@ -1751,16 +2005,17 @@ server <- function(input, output, session) {
     
     print(input$Map_Search_Address_search)
     
-    if(input$Intro_Search_Address_search >= 1){
+    if(input$Map_Search_Address_search >= 1){
+      
+      print(input$Map_Search_Address)
       
       Geo_Info <- Get_Geo_Info(input$Map_Search_Address)
       
       if(!is.null(Geo_Info) && !is.null(Geo_Info["lat"]) && !is.null(Geo_Info["lon"]) ){
         
-        updateTabItems(session, "Sider_Menu", "map")
-        
         Position$Target_Lat <- Geo_Info["lat"]
         Position$Target_Lon <- Geo_Info["lon"]
+        Position$Search_Flag <- TRUE
         
         Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
         
@@ -1810,6 +2065,7 @@ server <- function(input, output, session) {
 
                 Position$Target_Lat <- Geo_Info["lat"]
                 Position$Target_Lon <- Geo_Info["lon"]
+                Position$Search_Flag <- TRUE
 
                 Result_Crime_Data <- Selected_Crime(Position, input$Crime_Time, input$Crime_Type, input$Crime_Distance, Crime_Geo_Data, Crime_Data)
 
@@ -1847,8 +2103,11 @@ server <- function(input, output, session) {
   
   output$Map <- renderLeaflet({
     
-    leaflet() %>% setView(lng = Position$Target_Lon, lat = Position$Target_Lat, zoom = 15) %>% addTiles()
+    map <- leaflet() %>% setView(lng = Position$Target_Lon, lat = Position$Target_Lat, zoom = 15) %>% addTiles()
     
+    Position$Search_Flag <- FALSE
+    
+    map
   })
 
   
