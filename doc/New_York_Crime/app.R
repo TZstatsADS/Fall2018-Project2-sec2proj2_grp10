@@ -20,13 +20,48 @@ library("htmlwidgets")
 library("htmltools")
 library("shinyjs")
 library("shinydashboard")
+library(ggplot2)
+library(reshape2)
 
 
-Crime_Data <- read.csv("../../data/NYC_Crime_Data/NYC_crime.csv")
+
+
+###########################  Start from here is crime value for map ########################### 
+Crime_Data <- read.csv("../../data/NYC_Crime_Data/NYPD_Complaint_Data_Current_YTD.csv")
+
+crime <- Crime_Data
+
+Get_Year <- function(Date){
+  return(substring(Date, 7, 10))
+}
+
+Get_Month <- function(Date){
+  return(substring(Date, 1, 2))
+}
+
+Crime_Data <- cbind(Crime_Data, year = sapply(Crime_Data$CMPLNT_FR_DT, Get_Year), month = sapply(Crime_Data$CMPLNT_FR_DT, Get_Month))
+
+Crime_Data <- Crime_Data[Crime_Data$year == "2018" & Crime_Data$month == "03",]
 
 Crime_Geo_Data <- Crime_Data[, c("CMPLNT_NUM", "Latitude", "Longitude")]
 
 colnames(Crime_Geo_Data) <- c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")
+###########################  End here is crime value for map ########################### 
+
+
+
+
+########################### Start from here is crime for statistics ########################### 
+# Work on date format
+date <- crime$CMPLNT_FR_DT
+hours <- crime$CMPLNT_FR_TM
+crime$Year <- substring(date, 7, 10)
+crime$Month <- substring(date, 1, 2)
+crime$Day <- substring(date, 4, 5)
+crime$Time <- substring(hours, 1, 5)
+###########################  end here is crime for statistics ########################### 
+
+
 
 
 ######################## Start of Get_Geo_Info ######################## 
@@ -508,7 +543,7 @@ Current_Position_Pop_Up_Maker <- function(Num_Crime = 0){
 
 Crime_Icon <- makeIcon(
   iconUrl = "./Crime.png",
-  iconWidth = 25, iconHeight = 25,
+  iconWidth = 30, iconHeight = 30,
   className = "Crime_Icon"
 )
 
@@ -548,14 +583,22 @@ ui <- dashboardPage(
       id = "Sider_Menu",
       menuItem("Intro", tabName = "intro", icon = icon("dashboard")),
       menuItem("Map", tabName = "map", icon = icon("fal fa-map")),
-      menuItem("Statistic", tabName = "statistic", icon = icon("th"))
+      menuItem("Crime Statistic", icon = icon("th"), 
+               sidebarMenu(id = "Statistic_Sub_Side_Bar",
+                           menuItem("Crime Types", tabName = "Crime_Types", icon = icon("fal fa-map")),
+                           menuItem("Victim Sex", tabName = "Victim_Sex", icon = icon("fal fa-map")),
+                           menuItem("Age Group and Race", tabName = "Crime_Age_Group_Race", icon = icon("fal fa-map")),
+                           menuItem("Crime During Day", tabName = "Crime_During_Day", icon = icon("fal fa-map"))
+                           )
+              )
     )
   ),
   dashboardBody(
     tags$head(
       tags$link(rel = "stylesheet", type = "text/css", href = "Crime_Map.css")
     ),
-    
+ 
+########################## UI for map and Intro ########################## 
     tabItems(
       
 
@@ -642,11 +685,101 @@ ui <- dashboardPage(
                 )
               )
       ),
+########################## UI for map and Intro ##########################    
       
-      
-      tabItem(tabName = "statistic",
-              h2("statistic")
+      tabItem(tabName = "Crime_Types",
+              fluidRow(
+                column(width = 9,
+                       tabBox(
+                         side = "left", width = 12,
+                         selected = "Crime Count in Boroughs",
+                         tabPanel("Crime Count in Boroughs", 
+                                  plotOutput("Crime_Count_Boro")
+                                  ),
+                         tabPanel("Monthly Crime", 
+                                  plotOutput("Monthly_Crime")                      
+                                  )
+
+                       )
+                ),
+                column(width = 3,
+                       box(width = 12,
+                           pickerInput("Statistic_Year", "Year:", list("2016", "2017", "2018"), selected = "2016")
+                           )
+                )
+              )
+      ),      
+
+      tabItem(tabName = "Victim_Sex",
+              fluidRow(
+                column(width = 9,
+                       tabBox(
+                         side = "left", width = 12,
+                         selected = "Victim Sex Crime Type",
+                         tabPanel("Victim Sex Crime Type", 
+                                  plotOutput("Victim_Sex_Crime_Type")
+                                  ),
+                         tabPanel("Victim Sex Boroughs", 
+                                  plotOutput("Victim_Sex_Boroughs")                      
+                                  )
+
+                       )
+                ),
+                column(width = 3,
+                       tabBox(
+                         side = "left", width = 12,
+                         selected = "Crime Type",
+                         tabPanel("Crime Type", 
+                                  pickerInput("Statistic_Crime_Type", "Crime Type:", list("VIOLATION", "MISDEMEANOR", "FELONY") , selected = "VIOLATION" )
+                         ),
+                         tabPanel("NYC Borough", 
+                                  pickerInput("Statistic_NYC_Borough", "NYC Borough:", list("BROOKLYN", "STATEN ISLAND", "QUEENS", "BRONX", "MANHATTAN"), selected = "BROOKLY")
+                         )
+                         
+                       )
+                )
+              )
+      ),
+
+      tabItem(tabName = "Crime_Age_Group_Race",
+              fluidRow(
+                column(width = 10, offset = 1,
+                       tabBox(
+                         side = "left", width = 12,
+                         selected = "Crime Count Vs Avg Group",
+                         tabPanel("Crime Count Vs Avg Group", 
+                                  plotOutput("Crime_Count_Avg_Group")
+                                  ),
+                         tabPanel("Crime Count Vs Race", 
+                                  plotOutput("Crime_Count_Race")                      
+                                  )
+
+                       )
+                )
+              )
+      ),
+
+      tabItem(tabName = "Crime_During_Day",
+              fluidRow(
+                column(width = 10, offset = 1,
+                       tabBox(
+                         side = "left", width = 12,
+                         selected = "Crime During Day",
+                         tabPanel("Crime During Day", 
+                                  plotOutput("Crime_During_Day")
+                                  )
+
+                       )
+                )
+              )
       )
+
+    
+      
+      
+      
+      
+      
     )
   )
 )
@@ -1669,7 +1802,7 @@ server <- function(input, output, session) {
   
 
   
-################################### OUTPUT ################################### 
+################################### OUTPUT for map ################################### 
   
   output$Map <- renderLeaflet({
     
@@ -1678,7 +1811,199 @@ server <- function(input, output, session) {
   })
 
   
-################################### OUTPUT ################################### 
+################################### OUTPUT for map ################################### 
+  
+  
+################################### Statistics Crime Count in Boroughs ################
+  output$Crime_Count_Boro <- renderPlot({
+    if(input$Statistic_Year == "2018")
+    {
+      data <- crime[which(crime$Year == input$Statistic_Year),  ]
+      data <- data[!(is.na(data$BORO_NM) | data$BORO_NM == ""), ]
+    }
+    if(input$Statistic_Year == "2017")
+    {
+      data <- crime[which(crime$Year == input$Statistic_Year),  ]
+      data <- data[!(is.na(data$BORO_NM) | data$BORO_NM == ""), ]
+    }
+    if(input$Statistic_Year == "2016")
+    {
+      data <- crime[which(crime$Year == "2016"),  ]
+      data <- data[!(is.na(data$BORO_NM) | data$BORO_NM == ""), ]
+    }
+    
+    g <- reactive({ 
+      ggplot(data, aes(BORO_NM)) + geom_bar(aes(fill = LAW_CAT_CD), width = 0.5, position=position_dodge(), colour="black") + 
+        theme(text = element_text(size = 14, face = "bold"), axis.text.x = element_text(angle=65, vjust=0.6)) +
+        labs(title = "Bar Chart: Compare Crime count across 5 Boroughs",
+             x = "5 Boroughs", y = "Crime Count")
+    })
+    g()
+  })
+  
+################################### Statistics Crime Count in Boroughs ################  
+
+  
+################################### Statistics Monthly_Crime ################
+  output$Monthly_Crime <- renderPlot({ 
+    if(input$Statistic_Year == "2018")
+    {
+      data <- crime[which(crime$Year == input$Statistic_Year),  ]
+    }
+    if(input$Statistic_Year == "2017")
+    {
+      data <- crime[which(crime$Year == input$Statistic_Year),  ]
+    }
+    if(input$Statistic_Year == "2016")
+    {
+      data <- crime[which(crime$Year == "2016"),  ]
+    }
+    data <- data[!(is.na(data$BORO_NM) | data$BORO_NM == ""), ]
+    
+    data <- aggregate(data["LAW_CAT_CD"], by = data[c("Month", "LAW_CAT_CD")], FUN = length)
+    colnames(data)[3] <- "Total"
+    
+    monthNames <- c("January","February","March","April","May","June","July",
+                    "August","September","October","November","December")
+    
+    ggplot(data, aes(Month)) +
+      geom_line(aes(y = Total, group = LAW_CAT_CD, colour = LAW_CAT_CD), size = 2) +
+      scale_x_discrete(labels = monthNames) +
+      scale_colour_manual(values = rainbow(14)) +
+      theme(text = element_text(size = 14, face = "bold"),
+            axis.text.x = element_text(angle = 60, hjust = 1)) +
+      labs(title = "Monthly crime totals per month",
+           colour = "Crime type",
+           y = "Total Crime")
+  })
+  
+################################### Statistics Monthly_Crime ################
+    
+################################### Statistics Victim_Sex_Crime_Type ################
+  output$Victim_Sex_Crime_Type <- renderPlot({
+    if(input$Statistic_Crime_Type == "FELONY")
+    {
+      data <- crime[which(crime$LAW_CAT_CD == "FELONY"),  ]
+    }
+    if(input$Statistic_Crime_Type == "MISDEMEANOR")
+    {
+      data <- crime[which(crime$LAW_CAT_CD == "MISDEMEANOR"),  ]
+    }
+    if(input$Statistic_Crime_Type == "VIOLATION")
+    {
+      data <- crime[which(crime$LAW_CAT_CD == "VIOLATION"),  ]
+    }
+    
+    data <- data[!(is.na(data$LAW_CAT_CD) | data$LAW_CAT_CD == ""), ]
+    data <- data[!(data$VIC_SEX == "D" | data$VIC_SEX == "E"), ]
+    
+    pie <- ggplot(data, aes(x = "", fill = factor(VIC_SEX))) + 
+      geom_bar(width = 1) +
+      theme(text = element_text(size = 14, face = "bold"), 
+            axis.line = element_blank(), 
+            plot.title = element_text(hjust=0.5)) + 
+      labs(fill="VIC_SEX", 
+           x = NULL, 
+           y = NULL, 
+           title="Pie Chart of Victim Sex for 3 different types of crime")
+    
+    pie + coord_polar(theta = "y", start=0)
+  })
+  
+################################### Statistics Victim_Sex_Crime_Type ################
+      
+  
+################################### Statistics Victim_Sex_Boroughs ################
+  output$Victim_Sex_Boroughs <- renderPlot({
+    if(input$Statistic_NYC_Borough == "MANHATTAN")
+    {
+      data <- crime[which(crime$BORO_NM == "MANHATTAN"),  ]
+    }
+    if(input$Statistic_NYC_Borough == "BRONX")
+    {
+      data <- crime[which(crime$BORO_NM == "BRONX"),  ]
+    }
+    if(input$Statistic_NYC_Borough == "QUEENS")
+    {
+      data <- crime[which(crime$BORO_NM == "QUEENS"),  ]
+    }
+    if(input$Statistic_NYC_Borough == "STATEN ISLAND")
+    {
+      data <- crime[which(crime$BORO_NM == "STATEN ISLAND"),  ]
+    }
+    if(input$Statistic_NYC_Borough == "BROOKLYN")
+    {
+      data <- crime[which(crime$BORO_NM == "BROOKLYN"),  ]
+    }
+    data <- data[!(is.na(data$BORO_NM) | data$BORO_NM == ""), ]
+    data <- data[!(data$VIC_SEX == "D" | data$VIC_SEX == "E"), ]
+    
+    pie <- ggplot(data, aes(x = "", fill = factor(VIC_SEX))) + 
+      geom_bar(width = 1) +
+      theme(text = element_text(size = 14, face = "bold"), 
+            axis.line = element_blank(), 
+            plot.title = element_text(hjust=0.5)) + 
+      labs(fill="VIC_SEX", 
+           x = NULL, 
+           y = NULL, 
+           title="Pie Chart of Victim Sex in 5 different Boroughs")
+    
+    pie + coord_polar(theta = "y", start=0)
+  })
+  
+################################### Statistics Victim_Sex_Boroughs ################
+  
+        
+################################### Statistics Crime_Count_Avg_Group ################
+  output$Crime_Count_Avg_Group <- renderPlot({
+    data <- crime[which(crime$VIC_AGE_GROUP == "<18" | crime$VIC_AGE_GROUP == "18-24" | crime$VIC_AGE_GROUP == "25-44" |
+                          crime$VIC_AGE_GROUP == "45-64"| crime$VIC_AGE_GROUP == "65+"),  ]
+    data <- aggregate(data["VIC_AGE_GROUP"], by = data[c("BORO_NM", "VIC_AGE_GROUP")], FUN = length)
+    colnames(data)[3] <- "Total"
+    
+    ggplot(data, aes(x = VIC_AGE_GROUP, y = Total)) + 
+      geom_bar(stat="identity", width=.5, fill="tomato3") + 
+      labs(title="Crime Count Vs Avg Group") + 
+      theme(text = element_text(size = 14, face = "bold"),
+            axis.text.x = element_text(angle=65, vjust=0.6))
+  })
+  
+################################### Statistics Crime_Count_Avg_Group ################
+          
+  
+################################### Statistics Crime_Count_Race ################
+  output$Crime_Count_Race <- renderPlot({
+    data <- crime[which(crime$VIC_RACE == "BLACK" | crime$VIC_RACE == "WHITE" | crime$VIC_RACE == "WHITE HISPANIC" |
+                          crime$VIC_RACE == "BLACK HISPANIC"| crime$VIC_RACE == "ASIAN/PAC.ISL" 
+                        | crime$VIC_RACE == "AMER IND"),  ]
+    data <- aggregate(data["VIC_RACE"], by = data[c("BORO_NM", "VIC_RACE")], FUN = length)
+    colnames(data)[3] <- "Total"
+    
+    ggplot(data, aes(x = VIC_RACE, y = Total)) + 
+      geom_bar(stat="identity", width=.5) + 
+      labs(title="Crime Count Vs Race") + 
+      theme(text = element_text(size = 14, face = "bold"),
+            axis.text.x = element_text(angle=65, vjust=0.6))
+  })
+################################### Statistics Crime_Count_Race ################
+           
+  
+################################### Statistics During Day ################
+  output$Crime_During_Day <- renderPlot({
+    data <- aggregate(crime["Time"], by = crime[c("BORO_NM", "LAW_CAT_CD", "Time")], FUN = length)
+    colnames(data)[4] <- "Total"
+    data <- data[!(is.na(data$BORO_NM) | data$BORO_NM == ""), ]
+    str(data) 
+    
+    ggplot(data, aes(x = Time, y = Total, color = LAW_CAT_CD)) + 
+      geom_point() +
+      geom_line() + 
+      facet_wrap(~ BORO_NM, ncol =2) +
+      ylab("Number of Crime")
+  })
+
+################################### Statistics Crime_Count_Race ################
+  
   
   
 
