@@ -29,8 +29,6 @@ Crime_Geo_Data <- Crime_Data[, c("CMPLNT_NUM", "Latitude", "Longitude")]
 colnames(Crime_Geo_Data) <- c("CMPLNT_NUM", "Crime_Latitude", "Crime_Longitude")
 
 
-
-
 ######################## Start of Get_Geo_Info ######################## 
 
 Get_Geo_Info <- function(Address){
@@ -337,9 +335,9 @@ Hotel_Icon_Maker <- function(Crime_Number){
   
   else if(Crime_Number>=11 && Crime_Number <= 20){
     return(makeIcon(
-      iconUrl = "./Hotel_Yellow.png",
+      iconUrl = "./Hotel_Blue.png",
       iconWidth = 25, iconHeight = 25,
-      className = "Hotel_Icon_Yellow"
+      className = "Hotel_Icon_Blue"
     ))
   }
   
@@ -368,9 +366,9 @@ Restaurant_Icon_Maker <- function(Crime_Number){
   
   else if(Crime_Number>=11 && Crime_Number <= 20){
     return(makeIcon(
-      iconUrl = "./Restaurant_Yellow.png",
+      iconUrl = "./Restaurant_Blue.png",
       iconWidth = 25, iconHeight = 25,
-      className = "Restaurant_Icon_Yellow"
+      className = "Restaurant_Icon_Blue"
     ))
   }
   
@@ -399,9 +397,9 @@ Entertainment_Icon_Maker <- function(Crime_Number){
   
   else if(Crime_Number>=11 && Crime_Number <= 20){
     return(makeIcon(
-      iconUrl = "./Entertainment_Yellow.png",
+      iconUrl = "./Entertainment_Blue.png",
       iconWidth = 25, iconHeight = 25,
-      className = "Entertainment_Icon_Yellow"
+      className = "Entertainment_Icon_Blue"
     ))
   }
   
@@ -417,7 +415,7 @@ Entertainment_Icon_Maker <- function(Crime_Number){
 }
 ####################### End of Entertainment_Icon_Maker ###########################################
 
-####################### Start of Entertainment_Icon_Maker ###########################################
+####################### Start of Current_Position_Icon_Maker ###########################################
 Current_Position_Icon_Maker <- function(Crime_Number){
   
   if(Crime_Number>=0 && Crime_Number <= 10){
@@ -446,8 +444,7 @@ Current_Position_Icon_Maker <- function(Crime_Number){
   }
   
 }
-####################### End of Entertainment_Icon_Maker ###########################################
-
+####################### End of Current_Position_Icon_Maker ###########################################
 
 ####################### Start of Business_Pop_Up_Maker ####################### 
 
