@@ -44,6 +44,11 @@
  border-bottom: none;
 }
 
+
+.search-icon{
+  color: red;
+}
+
 .nav-tabs-custom .nav-tabs li a{
   color: white;
 }
