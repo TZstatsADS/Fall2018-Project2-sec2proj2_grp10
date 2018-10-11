@@ -1,0 +1,13 @@
+name: New_York_Crime
+title: New_York_Crime
+username:
+account: fall18sec2proj2grp10
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 505802
+bundleId: 1635575
+url: https://fall18sec2proj2grp10.shinyapps.io/New_York_Crime/
+when: 1539208359.82934
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: NYC_Crime_Data/.DS_Store

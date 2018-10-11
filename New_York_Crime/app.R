@@ -27,7 +27,7 @@ library("reshape2")
 
 
 ###########################  Start from here is crime value for map ########################### 
-Crime_Data <- read.csv("../data/NYC_Crime_Data/NYPD_Complaint_Data_Current_YTD.csv")
+Crime_Data <- read.csv("./NYC_Crime_Data/NYPD_Complaint_Data_Current_YTD.csv")
 
 crime <- Crime_Data
 
@@ -39,9 +39,13 @@ Get_Month <- function(Date){
   return(substring(Date, 1, 2))
 }
 
-Crime_Data <- cbind(Crime_Data, year = sapply(Crime_Data$CMPLNT_FR_DT, Get_Year), month = sapply(Crime_Data$CMPLNT_FR_DT, Get_Month))
+Get_Day <- function(Date){
+  return(substring(Date, 4, 5))
+}
 
-Crime_Data <- Crime_Data[Crime_Data$year == "2018" & Crime_Data$month == "03",]
+Crime_Data <- cbind(Crime_Data, year = sapply(Crime_Data$CMPLNT_FR_DT, Get_Year), month = sapply(Crime_Data$CMPLNT_FR_DT, Get_Month), day = sapply(Crime_Data$CMPLNT_FR_DT, Get_Day))
+
+Crime_Data <- Crime_Data[Crime_Data$year == "2018" & Crime_Data$month == "03" & Crime_Data$day == "31"  | Crime_Data$day == "30"  | Crime_Data$day == "29",]
 
 Crime_Geo_Data <- Crime_Data[, c("CMPLNT_NUM", "Latitude", "Longitude")]
 
@@ -131,7 +135,7 @@ Pop_Up_Money <- function(Price_Level){
   }
   
   else{
-    Size <- length(Price_Level)
+    Size <- nchar(as.character(Price_Level))
     
     return(paste(rep("<img src='./money.png' width='15' height='15'>", Size),collapse = ""))
     
@@ -405,7 +409,7 @@ Selected_Business <- function(Target_Position, Business_Type, Zoom_Size, Busines
 ####################### Start of Hotel_Icon_Maker ###########################################
 Hotel_Icon_Maker <- function(Crime_Number){
   
-  if(Crime_Number>=0 && Crime_Number <= 10){
+  if(Crime_Number>=0 && Crime_Number <= 30){
     return(makeIcon(
       iconUrl = "./Hotel_Green.png",
       iconWidth = 25, iconHeight = 25,
@@ -413,7 +417,7 @@ Hotel_Icon_Maker <- function(Crime_Number){
     ))
   }
   
-  else if(Crime_Number>=11 && Crime_Number <= 20){
+  else if(Crime_Number>=31 && Crime_Number <= 60){
     return(makeIcon(
       iconUrl = "./Hotel_Blue.png",
       iconWidth = 25, iconHeight = 25,
@@ -436,7 +440,7 @@ Hotel_Icon_Maker <- function(Crime_Number){
 ####################### Start of Restaurant_Icon_Maker ###########################################
 Restaurant_Icon_Maker <- function(Crime_Number){
   
-  if(Crime_Number>=0 && Crime_Number <= 10){
+  if(Crime_Number>=0 && Crime_Number <= 30){
     return(makeIcon(
       iconUrl = "./Restaurant_Green.png",
       iconWidth = 25, iconHeight = 25,
@@ -444,7 +448,7 @@ Restaurant_Icon_Maker <- function(Crime_Number){
     ))
   }
   
-  else if(Crime_Number>=11 && Crime_Number <= 20){
+  else if(Crime_Number>=31 && Crime_Number <= 60){
     return(makeIcon(
       iconUrl = "./Restaurant_Blue.png",
       iconWidth = 25, iconHeight = 25,
@@ -467,7 +471,7 @@ Restaurant_Icon_Maker <- function(Crime_Number){
 ####################### Start of Entertainment_Icon_Maker ###########################################
 Entertainment_Icon_Maker <- function(Crime_Number){
   
-  if(Crime_Number>=0 && Crime_Number <= 10){
+  if(Crime_Number>=0 && Crime_Number <= 30){
     return(makeIcon(
       iconUrl = "./Entertainment_Green.png",
       iconWidth = 25, iconHeight = 25,
@@ -475,7 +479,7 @@ Entertainment_Icon_Maker <- function(Crime_Number){
     ))
   }
   
-  else if(Crime_Number>=11 && Crime_Number <= 20){
+  else if(Crime_Number>=31 && Crime_Number <= 60){
     return(makeIcon(
       iconUrl = "./Entertainment_Blue.png",
       iconWidth = 25, iconHeight = 25,
@@ -498,7 +502,7 @@ Entertainment_Icon_Maker <- function(Crime_Number){
 ####################### Start of Current_Position_Icon_Maker ###########################################
 Current_Position_Icon_Maker <- function(Crime_Number){
   
-  if(Crime_Number>=0 && Crime_Number <= 10){
+  if(Crime_Number>=0 && Crime_Number <= 30){
     return(makeIcon(
       iconUrl = "./Current_Position_Green.png",
       iconWidth = 25, iconHeight = 25,
@@ -506,7 +510,7 @@ Current_Position_Icon_Maker <- function(Crime_Number){
     ))
   }
   
-  else if(Crime_Number>=11 && Crime_Number <= 20){
+  else if(Crime_Number>=31 && Crime_Number <= 60){
     return(makeIcon(
       iconUrl = "./Current_Position_Yellow.png",
       iconWidth = 25, iconHeight = 25,
@@ -2263,7 +2267,7 @@ server <- function(input, output, session) {
     
     ggplot(data, aes(x = VIC_AGE_GROUP, y = Total)) + 
       geom_bar(stat="identity", width=.5, fill="tomato3") + 
-      labs(title="Crime Count Vs Avg Group") + 
+      labs(title="Crime Count Vs Victim's Age Group", x = "Victim's Age Group") + 
       theme(text = element_text(size = 14, face = "bold"),
             axis.text.x = element_text(angle=65, vjust=0.6))
   })
@@ -2281,7 +2285,7 @@ server <- function(input, output, session) {
     
     ggplot(data, aes(x = VIC_RACE, y = Total)) + 
       geom_bar(stat="identity", width=.5) + 
-      labs(title="Crime Count Vs Race") + 
+      labs(title="Crime Count Vs Victim's Race", x = "Victim's Race") + 
       theme(text = element_text(size = 14, face = "bold"),
             axis.text.x = element_text(angle=65, vjust=0.6))
   })
