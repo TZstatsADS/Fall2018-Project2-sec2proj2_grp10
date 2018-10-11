@@ -1,37 +1,45 @@
-# Project 2: Shiny App Development Version 2.0
+# Project 2: Tourists Guide in New York City
 
-### [Project Description](doc/project2_desc.md)
+Term: Fall 2018
 
-![screenshot](doc/screenshot2.png)
+In this second project of GU4243/GR5243 Applied Data Science, we develop an *New York City Tourist Guide and Crime* shiny app which give tourists some guide about how to live and play safe in New York City.
 
-In this second project of GR5243 Applied Data Science, we develop a version 2.0 of an *Exploratory Data Analysis and Visualization* shiny app on a topic of your choice using [NYC Open Data](https://opendata.cityofnewyork.us/) or U.S. government open data released on the [data.gov](https://data.gov/) website. See [Project 2 Description](doc/project2_desc.md) for more details.  
-
-The **learning goals** for this project is:
-
-- business intelligence for data science
-- study legacy codes and further development
-- data cleaning
-- data visualization
-- systems development/design life cycle
-- shiny app/shiny server
-
-*The above general statement about project 2 can be removed once you are finished with your project. It is optional.
-
-## Project Title Lorem ipsum dolor sit amet
-Term: Spring 2018
-
-+ Team #
-+ **Projec title**: + Team members
++ **Team 10 - Team Members:**
 	+ Zhongce Ji (zj2225)
-	+ team member 2
-	+ team member 3
-	+ team member 4
-	+ team member 5
+	+ Yan Wang (yw3177)
+	+ Yaxin Wang (yw3042)
+	+ Chun Zhai (cz2466)
+	+ Kehui Zhu (kz2293)
+	
++ **Link to deployed Shiny-App:**
+https://fall18sec2proj2grp10.shinyapps.io/New_York_Crime/
 
-+ **Project summary**: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
-+ **Contribution statement**: ([default](doc/a_note_on_contributions.md)) All team members contributed equally in all stages of this project. All team members approve our work presented in this GitHub repository including this contributions statement. 
+## Introduction:
 
+In this second project, we have developed an Rshiny application designed to help people who want to visit the New York City and the application will show you the place that you can live or enjoy life safely. 
+
+
+![screenshot1](doc/figs/Application_Screen.png)
+
+![screenshot2](doc/figs/Application_Screen2.png)
+
+## Project summary
+When people plan to visit the New York City, they will take many factors into consideration when they are looking for some place to live or to eat. And the safety is one of the most important factor which many people will use to eveluate whether the place is a great choice or not. 
+
+In the intro tab, you can search any place you want to live or go, then it will lead you to the second tab which is a map tab, in the tab you can find where you are and marker of current position will show the crime level at your place such as the crying face means there are many crime happend before around and you should be careful, the love face means there are just a few crime happened before around you so you can be relax. Then you can user crime check box to see where the crime happened before and you can use selection to see the crime level at your location according to different type, time and the distance between you and crime. Then you also can use category checkbox to show the around Hotels, Restaurant and Enteritainment, which also will be marked according to the crime level around those category. But also you can change parameter such as distance between crime and hotels to adjust the crime that you care about to find out safe place to live.
+
+In the statistic tab, you can find some bar chart or pie chart which analyze the cirme in New York City according to its type, victims, time and many other factors. The visualization analysis give you a great idea about the crime in the New York City which you can use to make decisions such as where to live, when you go out, the time you need to go back to hotel at the latest.
+
++ **Data Source**: We used data from data.gov, New York Open Data and yelp. We use yelp API to get real time category data, and Google API to get geo information about the locations. 
+
+
++ **Contribution statement**: All team members contributed equally in all stages of this project. All team members approve our work presented in this GitHub repository including this contributions statement. 
+
+    + Map : Zhongce Ji ( zj2225 ), Yan Wang ( yw3177 ), Yaxin Wang ( yw3042 )
+    + Statistics : Chun Zhai (cz2466), Kehui Zhu (kz2293)
+    + Special: Special Credit to **Minmin Zhu** who give us the idea about tourists, also help design UI and selection for Icon in the UI part.
+      
 Following [suggestions](http://nicercode.github.io/blog/2013-04-05-projects/) by [RICH FITZJOHN](http://nicercode.github.io/about/#Team) (@richfitz). This folder is orgarnized as follows.
 
 ```
